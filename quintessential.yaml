@@ -1,0 +1,13 @@
+Name: TrueAnimismus
+Version: 0.5.3
+Icon: mod_icon_truean
+Title: True Animismus
+Desc: Introduces higher grades of vitae/mors and glyphs that operate on animismus.
+DLL: "TrueAn.dll"
+Dependencies:
+- Name: Quintessential
+  Version: 0.5.0
+OptionalDependencies:
+- Name: FTSIGCTU
+  Version: 0.4.1
+#Mappings:

@@ -1,0 +1,7 @@
+Symbol gradient:
+
+#ffffe9
+
+to
+
+#ded9ad
