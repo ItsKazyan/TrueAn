@@ -69,7 +69,7 @@ public static class ChiralityFlip
             // time to flip chiralities!
             var interfaceDyn = new DynamicData(current_interface);
             var draggedParts = interfaceDyn.Get<List<PartDraggingInputMode.DraggedPart>>("field_2712");
-            if (draggedParts.Count != 1) {MainClass.playSoundWithVolume(class_238.field_1991.field_1872, 0.5f); return;} // Only flip if we're dragging a single part; FTSIGCTU beep if multiple parts
+            //if (draggedParts.Count != 1) {MainClass.playSoundWithVolume(class_238.field_1991.field_1872, 0.5f); return;} // Only flip if we're dragging a single part; FTSIGCTU beep if multiple parts
             var cursorHex = interfaceDyn.Get<HexIndex>("field_2715");
 
             var ChiralityFlippedParts = new List<PartDraggingInputMode.DraggedPart>();
@@ -79,10 +79,10 @@ public static class ChiralityFlip
                 PartType draggedPartType = getDraggedPartType(draggedPart);
                 var partType = getDraggedPartType(draggedPart);
 
-                if (partType != Glyphs.Disproportion && partType != Glyphs.DisproportionR ) // or however I'm support to check this
+                if (partType != Glyphs.Disproportion && partType != Glyphs.DisproportionR ) // or however I'm supposed to check this
                 {
                     //nothing to do; that's not a Glyph of Disproportion to flip
-                    return;
+                    continue;
                 }
                 else
                 {

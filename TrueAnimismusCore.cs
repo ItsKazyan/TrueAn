@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Collections;
 using System.Security.Cryptography;
+using System.CodeDom;
 
 namespace TrueAnimismus;
 
@@ -93,7 +94,9 @@ public class MainClass : QuintessentialMod
 		QApi.RunAfterCycle(My_Method_1832);
 		IL.SolutionEditorBase.method_1984 += drawHerrimanWheelAtoms;
 		On.SolutionEditorBase.method_1984 += Glyphs.dispojackToEndOfList;
-		//Glyphs.DispoDrawHook();
+		Glyphs.DispoDrawHook();
+		On.PartDraggingInputMode.method_1 += Glyphs.DispoDrawDragged;
+		//Glyphs.DontDrawHook(); //I'll fix the atom shadows problem later
 	}
 
 	private static void drawHerrimanWheelAtoms(ILContext il)
@@ -282,7 +285,7 @@ public class MainClass : QuintessentialMod
 			var partType = part.method_1159();
 
 			if (partType == GlyphAnimismus)
-			{
+			{	//Psst, there are more changes made to the Glyph of Animismus outside of this if-statement; there's also an ILHook around here somwhere
 				
 				// check if Herriman's Wheel is in place to mediate half of the glyph
 
@@ -300,16 +303,6 @@ public class MainClass : QuintessentialMod
 				AtomReference atomOutputHerrimanUp = default(AtomReference);
 				AtomReference atomOutputHerrimanDown = default(AtomReference);
 				AtomType HerrimanOutputResult = default(AtomType);
-
-				// if(SEB.method_507().method_481(part).field_2744[0] == ModdedAtoms.Dummy)
-				// {/*Trying to "fire" the glyph because Herriman's Wheel is mediating over the vitae port (that's what the Dummy means)*/
-				// 	spawnAtomAtHex(part, hexOutputDown, API.morsAtomType);
-					
-				// }
-				// else if(SEB.method_507().method_481(part).field_2744[1] == ModdedAtoms.Dummy)
-				// {/*Trying to "fire" the glyph because Herriman's Wheel is mediating over the mors port (that's what the Dummy means)*/
-				// 	spawnAtomAtHex(part, hexOutputUp, API.vitaeAtomType);
-				// }
 
 				bool foundSaltInputLeft =
 					maybeFindAtom(part, hexInputLeft, gripperList).method_99(out atomSaltLeft)
@@ -867,10 +860,83 @@ public class MainClass : QuintessentialMod
 	var gremlin = new ILCursor(il);
 	// Send code-modifying gremlin to roughly where the glyph of animismus's native code is
 	// not specifying an exact instruction number because that apparently changes if some other mod roots around in method_1832
-	// including Quintessential itself 
-	// oh no
-	
-	gremlin.Goto(640);
+
+	gremlin.Goto(600);
+
+	//Exact address matches this opcode sequence:
+	if (gremlin.TryGotoNext(MoveType.Before,
+	x => x.MatchLdarg(0),// Aruba, Jamaica, ooh, I wanna take you to Bermuda, Bahama, come on pretty mama, Ldarg_0, Montego
+	x => x.MatchLdfld(out _),
+	x => x.MatchLdloca(25),
+	x => x.MatchInitobj<Sim.struct_122>(),
+	x => x.MatchLdloca(25),
+	x => x.MatchLdcI4(0)
+		))
+
+		//We're at the spot where a partial atom collider emerges from an iris of the glyph of animismus
+		//Don't do this if there's a disposal jack over that iris, pls
+
+		//Remove the "spawn atom collider" code 
+		gremlin.RemoveRange(15);
+		//Grab the current Sim so we can reference anything on the board we want by hitting it with methods until the info falls out
+		Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
+		gremlin.Emit(OpCodes.Ldarg_0);
+		//Grab local variable #6; it's a class that's keeping track of which glyph we're messing with
+		//If you want to mess with the deets of any other vanilla glyph, you will probably end up in orig_method_1832 and grabbing local variable #6, too
+		Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)6);
+
+		//Grab the index of the for{} loop this code is in; I need it to know which iris we're talking about. j == 0 means vitae, j == 1 means mors
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)32);
+		Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 32);");
+
+		//I don't actually need to do this inside the for-loop, but there are these things called IL labels and
+		//I don't
+		//want to tear out a for-loop
+		//because the label-fixer part of Monomod will yell at me for that
+		//so we're taking the performance L of doing this code twice until I figure it out
+		//(Which is why I asked an LLM to clean up this bit for some performance, too)
+
+		//And now we can check if there's a dispojack before Doing The Thing
+
+		gremlin.EmitDelegate<Action<Sim, Sim.class_402,int>>((sim_self, tracker, j) => 
+			{   
+				Part part = tracker.field_3841;
+				SolutionEditorBase SEB = sim_self.field_3818;
+
+				bool blockvitae = false;
+				bool blockmors = false;
+				HexIndex hexOutputHiTransformed = new HexIndex(0, 1).Rotated(part.method_1163()) + part.method_1161();
+				HexIndex hexOutputLoTransformed = new HexIndex(1, -1).Rotated(part.method_1163()) + part.method_1161();
+
+				foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+				{
+					if (dispojack.method_1161() == hexOutputHiTransformed)
+						blockvitae = true;
+					if (dispojack.method_1161() == hexOutputLoTransformed)
+						blockmors = true;
+				}
+
+				if (!blockvitae && j == 0) // Make the vitae collider, maybe
+				{
+					sim_self.field_3826.Add(new Sim.struct_122()
+					{
+						field_3850 = (Sim.enum_190)0,
+						field_3851 = hexGraphicalOffset(hexOutputHiTransformed),
+						field_3852 = 15f // Sim.field_3832;
+					});
+				}
+				if (!blockmors && j == 1) // Make the mors collider, maybe
+				{
+					sim_self.field_3826.Add(new Sim.struct_122()
+					{
+						field_3850 = (Sim.enum_190)0,
+						field_3851 = hexGraphicalOffset(hexOutputLoTransformed),
+						field_3852 = 15f // Sim.field_3832;
+					});
+				}
+			});
+
 	
 	// And THIS syntax goes to the start of a block of instructions that dnSpy says is what the "spawn vitae" part looks like under the hood.
 	// The 35 is the 35th local variable, molecule2, which animismus will turn into elemental vitae
@@ -902,13 +968,6 @@ public class MainClass : QuintessentialMod
 		Logger.Log("gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => ");
 		gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => 
 			{	
-				//	Logger.Log(sim_self);
-				// 	Logger.Log(tracker.field_3841.method_1159());
-
-				// Spawn vitae and mors atoms as normal, UNLESS there's a dispojack on an iris or a herriman wheel atom covering it.
-
-				Logger.Log(sim_self);
-				Logger.Log(tracker);
 				Part part = tracker.field_3841;
 				Logger.Log(part.method_1159());
 				SolutionEditorBase SEB = sim_self.field_3818;
@@ -918,15 +977,11 @@ public class MainClass : QuintessentialMod
 				HexIndex hexOutputHi = new HexIndex(0,1);
 				HexIndex hexOutputLo = new HexIndex(1,-1);
 
-
-				foreach (Part whatisthis in SEB.method_502().field_3919)
-				{Logger.Log(whatisthis.method_1159());}
-
 				foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
 				{
-					Logger.Log(dispojack.method_1161());
-					Logger.Log(hexOutputHi.Rotated(part.method_1163()) + part.method_1161());
-					Logger.Log(hexOutputLo.Rotated(part.method_1163()) + part.method_1161());
+					// Logger.Log(dispojack.method_1161());
+					// Logger.Log(hexOutputHi.Rotated(part.method_1163()) + part.method_1161());
+					// Logger.Log(hexOutputLo.Rotated(part.method_1163()) + part.method_1161());
 					if (dispojack.method_1161() == hexOutputHi.Rotated(part.method_1163()) + part.method_1161())
 					{blockvitae = true;}
 					if (dispojack.method_1161() == hexOutputLo.Rotated(part.method_1163()) + part.method_1161())
@@ -936,7 +991,7 @@ public class MainClass : QuintessentialMod
 				if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputHi).method_99(out _)){blockvitae = true;}
 				if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputLo).method_99(out _)){blockmors = true;}
 
-				// Recreation of the vite and mors spawning code; now to add conditionality
+				// Recreation of the vite and mors spawning code
 				if(!blockvitae)
 				{Molecule vitmolecule = new Molecule();
 				vitmolecule.method_1105(new Atom(API.vitaeAtomType), part.method_1184(new HexIndex(0,1)));

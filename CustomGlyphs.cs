@@ -17,6 +17,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 
 //A LOT OF THIS IS SHAMELESSLY COPIED FROM REDUCTIVE METALLURGY, YAY FOR OPEN SOURCE
@@ -42,6 +43,8 @@ public static class Glyphs
 	public static Texture dispojack_base = new Texture();
 	public static Texture dispojack_face = new Texture();
 	public static Texture dispojack_details = new Texture();
+
+	public static Texture circleglow, circlestroke, singleglow, singlestroke; 
 
 	private static PartType makeGlyph(
 		string id,
@@ -340,11 +343,11 @@ public static class Glyphs
 			"TrueAnimismus:disproportion"
 		);
 
-		//Gpoing to be switching between glows and strokes a lot for DispoJack, so, loading them in advance:
-		Texture singleglow = class_238.field_1989.field_97.field_382;
-		Texture singlestroke = class_238.field_1989.field_97.field_383; 
-		Texture circleglow = class_235.method_615(selectpath + "circle_glow");
-		Texture circlestroke = class_235.method_615(selectpath + "circle_stroke");
+		//Going to be switching between glows and strokes a lot for DispoJack, so, loading them in advance:
+		singleglow = class_238.field_1989.field_97.field_382;
+		singlestroke = class_238.field_1989.field_97.field_383; 
+		circleglow = class_235.method_615(selectpath + "circle_glow");
+		circlestroke = class_235.method_615(selectpath + "circle_stroke");
 
 		DispoJack = makeGlyph(
 			"true-animismus-dispojack",
@@ -470,37 +473,8 @@ public static class Glyphs
 		lettersFullArray = MainClass.fetchTextureArray(12, "animations/dispojack_flash.array/dispojack_flash_");
 		Texture[] discoFullArray = MainClass.fetchTextureArray(16, "animations/disco.array/disco_");
 
-		// QApi.AddPartType(Rejection, (part, pos, editor, renderer) =>
-		// {
-		// 	PartSimState partSimState = editor.method_507().method_481(part);
-		// 	var simTime = editor.method_504();
-
-		// 	var originHex = new HexIndex(0, 0);
-		// 	var metalHex = originHex;
-		// 	var outputHex = new HexIndex(1, 0);
-
-		// 	float partAngle = renderer.field_1798;
-		// 	Vector2 base_offset = new Vector2(41f, 48f);
-		// 	drawPartGraphic(renderer, projectionGlyph_base, base_offset, 0.0f, Vector2.Zero, new Vector2(-1f, -1f));
-
-		// 	//draw metal bowl
-		// 	drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(metalHex), new Vector2(0.0f, -3f));
-		// 	drawPartGraphicSpecular(renderer, rejection_inputBowl, textureCenter(rejection_inputBowl), 0f, hexGraphicalOffset(metalHex), Vector2.Zero);
-		// 	drawPartGraphic(renderer, rejection_leadSymbolDown, textureCenter(rejection_leadSymbolDown), -partAngle, hexGraphicalOffset(metalHex), Vector2.Zero);
-
-		// 	//draw quicksilver output
-		// 	drawPartGraphic(renderer, bonderShadow, textureDimensions(bonderShadow) / 2, 0f, hexGraphicalOffset(outputHex), new Vector2(0.0f, -3f));
-		// 	drawPartGraphicSpecular(renderer, rejection_outputBowl, textureCenter(rejection_outputBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
-		// 	drawPartGraphic(renderer, rejection_metalBowlOverlay, textureCenter(rejection_metalBowlOverlay), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
-		// 	drawPartGraphic(renderer, rejection_quicksilverSymbol, textureCenter(rejection_quicksilverSymbol), -partAngle, hexGraphicalOffset(outputHex), Vector2.Zero);
-
-		// 	drawPartGraphic(renderer, projectionGlyph_bond, base_offset + new Vector2(-73f, -37f), 0f, Vector2.Zero, Vector2.Zero);
-		// 	drawPartGloss(renderer, rejection_gloss, rejection_glossMask, base_offset);
-		// });
-
 		QApi.AddPartType(Disproportion, (part, pos, editor, renderer) =>
 		{
-			// TODO: Change integrated disposal to be conditional on the presence of the disposal jack...
 			PartSimState partSimState = editor.method_507().method_481(part);
 			var simTime = editor.method_504();
 
@@ -516,13 +490,6 @@ public static class Glyphs
 			int index = irisFullArray.Length - 1;
 			//int cracklesIndex = cracklesFullArray.Length;
 
-			bool purificationMode = false;
-			foreach (Part solutionPart in editor.method_502().field_3919.Where(x => x.method_1159() == DispoJack))
-			{
-				var partHex = solutionPart.method_1161();
-				if (partHex == part.method_1161()) {purificationMode = true;}
-			}
-
 			float num = 0f;
 			bool flag = false;
 			if (partSimState.field_2743) // Which iris frame to draw. If they're not opening, irises stay closed. 
@@ -531,7 +498,16 @@ public static class Glyphs
 			 	num = simTime;
 			 	flag = (double)simTime > 0.5;
 			}
-			
+
+			bool Ldispojack = false;
+			bool Rdispojack = false;
+			foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+			{	//Did you put a dispojack on me, istg
+				if (dispojack.method_1161() == leftoutputHex.Rotated(part.method_1163()) + part.method_1161())
+				{Ldispojack = true;}
+				if (dispojack.method_1161() == rightoutputHex.Rotated(part.method_1163()) + part.method_1161())
+				{Rdispojack = true;}
+			}
 
 			// bool doRightCrackles = Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(rightinputHex), out _) &&  Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(rightoutputHex), out _);
 			// bool doLeftCrackles = Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(leftinputHex), out _) &&  Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(leftoutputHex), out _);
@@ -552,7 +528,7 @@ public static class Glyphs
 			foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
 			{
 				var i = hex == leftoutputHex ? 0 : 1;
-				if(hex == rightoutputHex && purificationMode) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
+				if(hex == rightoutputHex) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
 					{drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 					drawPartGraphic(renderer, irisFullArray[irisFullArray.Length - 1 /*closed iris*/], textureCenter(irisFullArray[irisFullArray.Length - 1]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
@@ -562,14 +538,14 @@ public static class Glyphs
 				{
 					drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (partSimState.field_2743 && !flag)
-					{
+					if (partSimState.field_2743 && !flag && !((i == 0 && Ldispojack) || (i == 1 && Rdispojack))/*Don't put a shadow under dispojack*/)
+					{	// if 
 						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 					}
 					drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 					
 					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (flag)
+					if (flag && !((i == 0 && Ldispojack) || (i == 1 && Rdispojack))/*Don't put a shadow under dispojack*/)
 					{
 						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 					}
@@ -605,13 +581,6 @@ public static class Glyphs
 
 			int index = irisFullArray.Length - 1;
 
-			bool purificationMode = false;
-			foreach (Part solutionPart in editor.method_502().field_3919.Where(x => x.method_1159() == DispoJack))
-			{
-				var partHex = solutionPart.method_1161();
-				if (partHex == part.method_1161()) {purificationMode = true;}
-			}
-
 			float num = 0f;
 			bool flag = false;
 			if (partSimState.field_2743) // Which iris frame to draw. If they're not opening, irises stay closed. 
@@ -621,29 +590,40 @@ public static class Glyphs
 			 	flag = (double)simTime > 0.5;
 			}
 
+			bool Ldispojack = false;
+			bool Rdispojack = false;
+			foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+			{	//Did you put a dispojack on me, istg
+				if (dispojack.method_1161() == leftoutputHex.Rotated(part.method_1163()) + part.method_1161())
+				{Ldispojack = true;}
+				if (dispojack.method_1161() == rightoutputHex.Rotated(part.method_1163()) + part.method_1161())
+				{Rdispojack = true;}
+			}
+
 			drawPartGraphic(renderer, disproportion_base_R, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(leftinputHex), new Vector2(0f, -3f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(rightinputHex), new Vector2(0f, -3f));
 			foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
 			{
-				var i = hex == rightoutputHex ? 0 : 1;
-				if ((hex == leftoutputHex) && purificationMode) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
-				{	drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
+				var i = hex == leftoutputHex ? 0 : 1;
+				if(hex == rightoutputHex) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
+					{drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 					drawPartGraphic(renderer, irisFullArray[irisFullArray.Length - 1 /*closed iris*/], textureCenter(irisFullArray[irisFullArray.Length - 1]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-				}
+					}
 				else
 				{
 					drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (partSimState.field_2743 && !flag)
-					{
+					if (partSimState.field_2743 && !flag && !((i == 0 && Rdispojack) || (i == 1 && Ldispojack))/*Don't put a shadow under dispojack*/)
+					{	// if 
 						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 					}
 					drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+					
 					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (flag)
+					if (flag && !((i == 0 && Rdispojack) || (i == 1 && Ldispojack))/*Don't put a shadow under dispojack*/)
 					{
 						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
 					}
@@ -664,62 +644,62 @@ public static class Glyphs
 
 		QApi.AddPartType(DispoJack, (part, pos, editor, renderer) =>
 		{
-			// Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus, but DispoJack handles its own drawing
-			PartSimState partSimState = editor.method_507().method_481(part);
-			var simTime = editor.method_504();
-			var originHex = new HexIndex(0, 0);
+			// // Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus, but DispoJack handles its own drawing
+			// PartSimState partSimState = editor.method_507().method_481(part);
+			// var simTime = editor.method_504();
+			// var originHex = new HexIndex(0, 0);
 
-			float partAngle = renderer.field_1798;
-			Vector2 base_offset = textureCenter(dispojack_base);
-			int lettersFlashIndex = lettersFullArray.Length - 1;
+			// float partAngle = renderer.field_1798;
+			// Vector2 base_offset = textureCenter(dispojack_base);
+			// int lettersFlashIndex = lettersFullArray.Length - 1;
 
-			// Draw DispoJack base only if it's not currently being a cap.
-			// Possible DispoJack placements: any iris of an animismus-produciton glyph
+			// // Draw DispoJack base only if it's not currently being a cap.
+			// // Possible DispoJack placements: any iris of an animismus-produciton glyph
 
-			//bool nobase = AtopAnotherPart(part, editor.method_502());
-			bool nobase = false;
-			foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
-				x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
-				x.method_1159() == Disproportion || 
-				x.method_1159() == DisproportionR ||
-				x.method_1159() == LeftHand))
-			{
-				if (AtopIris(cappablepart,part,editor.method_502())) {nobase = true;}
-				/*I am sorry about having to pass editor.method_502(),
-				I do not like having to say the magic words before it opens sesame either,
-				I wish Solution and SolutionEditorBase etc were global so I could just
-				use them
-				whenever I wanted
-				instead of having to do this
-				for every function that does anything interesting
-				but I know there's a good reason I can't do that*/
-			}
-
-			if (!nobase)
-			{
-				drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
-			// 	if (DispoJack.field_1549 != circleglow) {DispoJack.field_1549 = circleglow;} 
-			// 	if (DispoJack.field_1550 != circlestroke) {DispoJack.field_1549 = circlestroke;} 
-			// 	//Why the if-statements, if the variable has to end up as circlewhatever anyway? Because I don't wanna write a whole texture to the variable every frame
-			// }
-			// else
+			// //bool nobase = AtopAnotherPart(part, editor.method_502());
+			// bool nobase = false;
+			// foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
+			// 	x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
+			// 	x.method_1159() == Disproportion || 
+			// 	x.method_1159() == DisproportionR ||
+			// 	x.method_1159() == LeftHand))
 			// {
-			// 	if (DispoJack.field_1549 != singleglow) {DispoJack.field_1549 = singleglow;}
-			// 	if (DispoJack.field_1550 != singlestroke) {DispoJack.field_1549 = singlestroke;} 
-			// 	//Same deal
-			}
+			// 	if (AtopIris(cappablepart,part,editor.method_502())) {nobase = true;}
+			// 	/*I am sorry about having to pass editor.method_502(),
+			// 	I do not like having to say the magic words before it opens sesame either,
+			// 	I wish Solution and SolutionEditorBase etc were global so I could just
+			// 	use them
+			// 	whenever I wanted
+			// 	instead of having to do this
+			// 	for every function that does anything interesting
+			// 	but I know there's a good reason I can't do that*/
+			// }
 
-			drawPartGraphicSpecular(renderer, dispojack_face, textureCenter(dispojack_face), 0f, Vector2.Zero, Vector2.Zero);	
-			drawPartGraphic(renderer, dispojack_details, textureCenter(dispojack_details), -partAngle, Vector2.Zero, Vector2.Zero);			
-			// No gloss
+			// // if (!nobase)
+			// // {
+			// // 	drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
+			// // 	if (DispoJack.field_1549 != circleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,circleglow);} 
+			// // 	if (DispoJack.field_1550 != circlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,circlestroke);} 
+			// // 	//Why the if-statements, if the variable has to end up as circlewhatever anyway? Because I don't wanna write a whole texture to the variable every frame
+			// // }
+			// // else
+			// // {
+			// // 	if (DispoJack.field_1549 != singleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,singleglow);}
+			// // 	if (DispoJack.field_1550 != singlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,singlestroke);} 
+			// // 	//Same deal
+			// // }
 
-			//Letter Flash
-			if (GlyphBelowIsFiring(part, editor))
-				{
-					lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
-					// draw letter flash if needed
-					drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
-				}
+			// drawPartGraphicSpecular(renderer, dispojack_face, textureCenter(dispojack_face), 0f, Vector2.Zero, Vector2.Zero);	
+			// drawPartGraphic(renderer, dispojack_details, textureCenter(dispojack_details), -partAngle, Vector2.Zero, Vector2.Zero);			
+			// // No gloss
+
+			// //Letter Flash
+			// if (GlyphBelowIsFiring(part, editor))
+			// 	{
+			// 		lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
+			// 		// draw letter flash if needed
+			// 		drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
+			// 	}
 		});
 
 		QApi.AddPartType(LeftHand, (part, pos, editor, renderer) =>
@@ -746,6 +726,13 @@ public static class Glyphs
 			 	flag = (double)simTime > 0.5;
 			}
 
+			bool hasdispojack = false;
+			foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+			{	//Did you put a dispojack on me, istg
+				if (dispojack.method_1161() == rightHex.Rotated(part.method_1163()) + part.method_1161())
+				{hasdispojack = true;}
+			}
+
 			drawPartGraphic(renderer, lefthand_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(inputHex), new Vector2(0f, -3f));
 			foreach (var hex in new HexIndex[1] {rightHex})
@@ -754,13 +741,13 @@ public static class Glyphs
 				drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (partSimState.field_2743 && !flag)
 				{
-					drawAtomIO(renderer, partSimState.field_2744[0], hex, num);
+					if (!hasdispojack){drawAtomIO(renderer, partSimState.field_2744[0], hex, num);}
 				}
 				drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
 				drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
 				if (flag)
 				{
-					drawAtomIO(renderer, partSimState.field_2744[0], hex, num);
+					if (!hasdispojack){drawAtomIO(renderer, partSimState.field_2744[0], hex, num);}
 				}
 			}
 
@@ -838,120 +825,228 @@ public static class Glyphs
 		FTSIGCTU.MirrorTool.addRule(Wheel.Herriman, FTSIGCTU.MirrorTool.mirrorVanBerlo);
 	}
 
-	// private static ILHook dispodrawhook;
+	private static ILHook dispodrawhook, dontdrawhook;
 
-	// public static void DispoDrawHook()
-	// {
-	// 	dispodrawhook = new ILHook(
-	// 		typeof(SolutionEditorBase).GetMethod("method_1984", BindingFlags.Public | BindingFlags.Instance),
-	// 		DispoDraw);
-	// }
+	public static void DispoDrawHook()
+	{
+		dispodrawhook = new ILHook(
+			typeof(SolutionEditorBase).GetMethod("method_1984", BindingFlags.Public | BindingFlags.Instance),
+			DispoDraw);
+	}
 
-	// private static void DispoDraw(ILContext il)
-	// {
-	// // The Disposal Jack has to be drawn on top of every other glyph.
-	// // Normally the game draws each glyph in order, so I can't use QApi in the same way as with the rest of the custom glyphs
-	// // So instead, I'm going into method_1984, the one responsible for drawing everything on the board
-	// // And inserting 'draw the disposal jack' code right after the 'draw all the glyphs' code
+	public static void DontDrawHook()
+	{
+		dontdrawhook = new ILHook(
+			typeof(SolutionEditorBase).GetMethod("orig_method_1996", BindingFlags.NonPublic | BindingFlags.Instance),
+			DontDrawAtomIOUnderDispo);
+	}
+	
+	public static void DontDrawAtomIOUnderDispo(ILContext il){
+	//There are so many things I have to dig around in for the glyph of animismus to make the Dispojack work on it.
+	//This one is for drawing emerging atoms.
+	var gremlin = new ILCursor(il);
+	gremlin.Goto(1800); //somewhere shortly before the right place in the code
+	
+	//Exact spot
+	//If you're reading this code and trying to follow along, I'm sorry.
+	if (gremlin.TryGotoNext(MoveType.Before,
+	x => x.MatchLdloc(105),
+	x => x.MatchBrfalse(out _),
+	x => x.MatchLdsfld(out _),
+	x => x.MatchBr(out _),
+	x => x.MatchLdsfld(out _),
+	x => x.MatchCall(out _),
+	x => x.MatchLdloc(0),
+	x => x.MatchLdloc(106)
+		))
+		Logger.Log("First shadow-drawing injection: "+gremlin.Index);
+		//Get rid of the code so we can reimplement it wrapped in an if-statement
+		gremlin.RemoveRange(21);
 
-	// var gremlin = new ILCursor(il);
-	// gremlin.Goto(280); //somewhere shortly before the right place in the code
+		//So many local variables in the code that I have to fetch
+		//SEB
+		gremlin.Emit(OpCodes.Ldarg_0);
+		//param_5584
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)96);
+		//num17
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)105);
+		//hexindex6
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)106);
+		//class_
+		gremlin.Emit(OpCodes.Ldloc_0);
+		//Part
+		gremlin.Emit(OpCodes.Ldarg_1);
+
+		//Use them to do this
+		Logger.Log("gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,HexIndex,class_236,Part>>((SEB,param_5584,num17,hexIndex6,class_,part) => ");
+		gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,HexIndex,class_236,Part>>((SEB,param_5584,num17,hexIndex6,class_,part) => 
+			{	
+				foreach (var dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == DispoJack))
+					{	Logger.Log("h6: "+hexIndex6);
+						Logger.Log("dj: "+dispojack.method_1161());
+						Logger.Log("hi+: "+(hexIndex6.Rotated(part.method_1163()) + part.method_1161()));
+						Logger.Log("Equal?: "+(dispojack.method_1161() == (hexIndex6.Rotated(part.method_1163()) + part.method_1161())));
+						Logger.Log("---------");
+						if(dispojack.method_1161() == (hexIndex6.Rotated(part.method_1163()) + part.method_1161())){return;} /*if dispojack is where you're drawing the emerging atom, don't draw it!*/}
+				//otherwise yeah resume doing the thing
+				Molecule param_5585 = Molecule.method_1121((num17 == 0) ? class_175.field_1687 : class_175.field_1688);
+				Vector2 param_5586 = class_.field_1984 + class_187.field_1742.method_492(hexIndex6).Rotated(class_.field_1985); //method_1999 would go here, but it's private so I just write out what it does the long way
+				Editor.method_925(param_5585, param_5586, new HexIndex(0, 0), 0f, 1f, param_5584, 1f, false, null);
+
+				//Future me is going to hate this part of the code; I'm layers deep in the sauce
+			});
+
+		//BUT WAIT THERE'S MORE
+		//Atom IO drawings are handled in two different spots depending on sim time so we do this again
+
+	if (gremlin.TryGotoNext(MoveType.Before,
+	x => x.MatchLdloc(108),
+	x => x.MatchBrfalse(out _),
+	x => x.MatchLdcI4(1),
+	x => x.MatchLdcI4(-1),
+	x => x.MatchNewobj<HexIndex>()
+		))
+		Logger.Log("Second shadow-drawing injection: "+gremlin.Index);
+		gremlin.RemoveRange(31);
+		//Why do you even HAVE all of these
+		//SEB
+		gremlin.Emit(OpCodes.Ldarg_0);
+		//param_5584
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)96);
+		//num18
+		gremlin.Emit(OpCodes.Ldloc_S, (byte)108);
+		//class_
+		gremlin.Emit(OpCodes.Ldloc_0);
+		//Part
+		gremlin.Emit(OpCodes.Ldarg_1);
+
+		Logger.Log("gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,class_236,Part>>((SEB,param_5584,num17,class_,part) => ");
+		gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,class_236,Part>>((SEB,param_5584,num18,class_,part) => 
+			{	
+				HexIndex param_5587 = (num18 == 0) ? new HexIndex(0, 1) : new HexIndex(1, -1);
+				foreach (var dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == DispoJack))
+					{	Logger.Log("p5587: "+param_5587);
+						Logger.Log("dj: "+dispojack.method_1161());
+						Logger.Log("hi+: "+(param_5587.Rotated(part.method_1163()) + part.method_1161()));
+						Logger.Log("Equal?: "+(dispojack.method_1161() == (param_5587.Rotated(part.method_1163()) + part.method_1161())));
+						if(dispojack.method_1161() == (param_5587.Rotated(part.method_1163()) + part.method_1161())){return;}  /*if dispojack is where you're drawing the emerging atom, don't draw it!*/}
+				Molecule param_5588 = Molecule.method_1121((num18 == 0) ? class_175.field_1687 : class_175.field_1688);
+				Vector2 param_5589 = class_.field_1984 + class_187.field_1742.method_492(param_5587).Rotated(class_.field_1985);
+				Editor.method_925(param_5588, param_5589, new HexIndex(0, 0), 0f, 1f, param_5584, 1f, false, null);
+
+				//Future me is going to hate this part of the code; I'm layers deep in the sauce
+			});	
 
 
-	// //Go to the right spot in the code; this is what the opcodes look like just before it
-	// if (gremlin.TryGotoNext(MoveType.Before,
-	// x => x.MatchLdarga(5),
-	// x => x.MatchCall(out _),
-	// x => x.MatchBrfalse(out _),
-	// x => x.MatchLdarga(5),
-	// x => x.MatchCall(out _),
-	// x => x.MatchCallvirt(out _)
-	// 	))
-	// 	//Gonna need the list of glyphs
-	// 	gremlin.Emit(OpCodes.Ldloc_3);
-	// 	//And SolutionEditorBase
-	// 	gremlin.Emit(OpCodes.Ldarg_0);
-	// 	//And also that first argument for method_1984--Vector2 param_5533
-	// 	//I don't know what it does, but later methods want it 
-	// 	gremlin.Emit(OpCodes.Ldarg_1);
+	}
 
-	// 	//Use them to do this
-	// 	Logger.Log("gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => ");
-	// 	gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => 
-	// 		{	
-	// 		foreach (var dispojack in glyphlist.Where(x => x.method_1159() == DispoJack))
-	// 			{
-	// 				//Roll our own rendering helper, the ones used in the usual QApi syntax
-	// 				class_236 class_292 = SEB.method_1989(dispojack, param_5533); 
-	// 				class_195 renderer = new class_195(class_292.field_1984, class_292.field_1985, Editor.method_922());
-	// 				DispoDrawInner(dispojack, SEB, renderer);
-	// 			}
-	// 		});
-	// }
+	private static void DispoDraw(ILContext il)
+	{
+	// The Disposal Jack has to be drawn on top of every other glyph.
+	// Normally the game draws each glyph in order, so I can't use QApi in the same way as with the rest of the custom glyphs
+	// So instead, I'm going into method_1984, the one responsible for drawing everything on the board
+	// And inserting 'draw the disposal jack' code right after the 'draw all the glyphs' code
 
-	// private static void DispoDrawInner(Part part, SolutionEditorBase editor, class_195 renderer)
-	// {
-	// 	// Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus whenever I can make that last one work, but DispoJack handles its own drawing
-	// 	// TODO: Code functionality for the glyph of animismus
-	// 	// TODO: Make dispojack always be on top.
-	// 	PartSimState partSimState = editor.method_507().method_481(part);
-	// 	var simTime = editor.method_504();
-	// 	var originHex = new HexIndex(0, 0);
+	var gremlin = new ILCursor(il);
+	gremlin.Goto(350); //somewhere shortly before the right place in the code
 
-	// 	float partAngle = renderer.field_1798;
-	// 	Vector2 base_offset = textureCenter(dispojack_base);
-	// 	int lettersFlashIndex = lettersFullArray.Length - 1;
 
-	// 	// Draw DispoJack base only if it's not currently being a cap.
-	// 	// Possible DispoJack placements: any iris of an animismus-produciton glyph
+	//Go to the right spot in the code; this is what the opcodes look like just before it
+	if (gremlin.TryGotoNext(MoveType.Before,
+	x => x.MatchLdarg(0),
+	x => x.MatchCallvirt(out _),
+	x => x.MatchLdarg(0),	
+	x => x.MatchCallvirt(out _),
+	x => x.MatchCallvirt(out _),
+	x => x.MatchLdsfld(out _),
+	x => x.MatchDup(),
+	x => x.MatchBrtrue(out _),
+	x => x.MatchPop(),
+	x => x.MatchLdsfld(out _)
+		))
+		//Gonna need the list of glyphs
+		gremlin.Emit(OpCodes.Ldloc_3);
+		//And SolutionEditorBase
+		gremlin.Emit(OpCodes.Ldarg_0);
+		//And also that first argument for method_1984--Vector2 param_5533
+		//I don't know what it does, but later methods want it 
+		gremlin.Emit(OpCodes.Ldarg_1);
 
-	// 	//bool nobase = AtopAnotherPart(part, editor.method_502());
-	// 	bool nobase = false;
-	// 	foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
-	// 		x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
-	// 		x.method_1159() == Disproportion || 
-	// 		x.method_1159() == DisproportionR ||
-	// 		x.method_1159() == LeftHand))
-	// 	{
-	// 		if (AtopIris(cappablepart,part,editor.method_502())) {nobase = true;}
-	// 		/*I am sorry about having to pass editor.method_502(),
-	// 		I do not like having to say the magic words before it opens sesame either,
-	// 		I wish Solution and SolutionEditorBase etc were global so I could just
-	// 		use them
-	// 		whenever I wanted
-	// 		instead of having to do this
-	// 		for every function that does anything interesting
-	// 		but I know there's a good reason I can't do that*/
-	// 	}
+		//Use them to do this
+		Logger.Log("gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => ");
+		gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => 
+			{	
+			foreach (var dispojack in glyphlist.Where(x => x.method_1159() == DispoJack))
+				{
+					//Roll our own rendering helper, the ones used in the usual QApi syntax
+					class_236 class_292 = SEB.method_1989(dispojack, param_5533); 
+					class_195 renderer = new class_195(class_292.field_1984, class_292.field_1985, Editor.method_922());
+					DispoDrawInner(dispojack, SEB, renderer, false);
+				}
+			});
+	}
 
-	// 	if (!nobase)
-	// 	{
-	// 		drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
-	// 	// 	if (DispoJack.field_1549 != circleglow) {DispoJack.field_1549 = circleglow;} 
-	// 	// 	if (DispoJack.field_1550 != circlestroke) {DispoJack.field_1549 = circlestroke;} 
-	// 	// 	//Why the if-statements, if the variable has to end up as circlewhatever anyway? Because I don't wanna write a whole texture to the variable every frame
-	// 	// }
-	// 	// else
-	// 	// {
-	// 	// 	if (DispoJack.field_1549 != singleglow) {DispoJack.field_1549 = singleglow;}
-	// 	// 	if (DispoJack.field_1550 != singlestroke) {DispoJack.field_1549 = singlestroke;} 
-	// 	// 	//Same deal
-	// 	// }
+	private static void DispoDrawInner(Part part, SolutionEditorBase editor, class_195 renderer, bool dragging)
+	{
+		// Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus whenever I can make that last one work, but DispoJack handles its own drawing
+		// TODO: Code functionality for the glyph of animismus
+		// TODO: Make dispojack always be on top.
+		PartSimState partSimState = editor.method_507().method_481(part);
+		var simTime = editor.method_504();
+		var originHex = new HexIndex(0, 0);
 
-	// 	drawPartGraphicSpecular(renderer, dispojack_face, textureCenter(dispojack_face), 0f, Vector2.Zero, Vector2.Zero);	
-	// 	drawPartGraphic(renderer, dispojack_details, textureCenter(dispojack_details), -partAngle, Vector2.Zero, Vector2.Zero);			
-	// 	// No gloss
+		float partAngle = renderer.field_1798;
+		Vector2 base_offset = textureCenter(dispojack_base);
+		int lettersFlashIndex = lettersFullArray.Length - 1;
 
-	// 	//Letter Flash
-	// 	if (GlyphBelowIsFiring(part, editor))
-	// 		{
-	// 			lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
-	// 			// draw letter flash if needed
-	// 			drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
-	// 		}
-	// 	}
-	// }
+		// Draw DispoJack base only if it's not currently being a cap.
+		// Possible DispoJack placements: any iris of an animismus-produciton glyph
 
+		//bool nobase = AtopAnotherPart(part, editor.method_502());
+		bool nobase = false;
+		foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
+			x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
+			x.method_1159() == Disproportion || 
+			x.method_1159() == DisproportionR ||
+			x.method_1159() == LeftHand))
+		{
+			if (AtopIris(cappablepart,part,editor.method_502())) {nobase = true;}
+			/*I am sorry about having to pass editor.method_502(),
+			I do not like having to say the magic words before it opens sesame either,
+			I wish Solution and SolutionEditorBase etc were global so I could just
+			use them
+			whenever I wanted
+			instead of having to do this
+			for every function that does anything interesting
+			but I know there's a good reason I can't do that*/
+		}
+
+		if (!nobase && !dragging)
+		{
+			drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
+			if (DispoJack.field_1549 != singleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,singleglow);}
+			if (DispoJack.field_1550 != singlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,singlestroke);} 
+			//Same deal
+}
+		else
+		{
+			if (DispoJack.field_1549 != circleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*stroke (outline)*/,circleglow);} 
+			if (DispoJack.field_1550 != circlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,circlestroke);} 
+			//Why the if-statements, if the variable has to end up as circlewhatever anyway? Because I don't wanna write a whole texture to the variable every frame
+		}
+
+		drawPartGraphicSpecular(renderer, dispojack_face, textureCenter(dispojack_face), -partAngle, Vector2.Zero, Vector2.Zero);	
+		drawPartGraphic(renderer, dispojack_details, textureCenter(dispojack_details), -partAngle, Vector2.Zero, Vector2.Zero);			
+		// No gloss
+
+		//Letter Flash
+		if (GlyphBelowIsFiring(part, editor))
+		{
+			lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
+			// draw letter flash if needed
+			drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
+		}
+	}
 	public static void dispojackToEndOfList(On.SolutionEditorBase.orig_method_1984 orig, SolutionEditorBase SEB, Vector2 param_5533, Bounds2 param_5534, Bounds2 param_5535, bool param_5536, Maybe<List<Molecule>> param_5537, bool param_5538)
 	{
 		//Make the disposal jack always drawn last by clamping it to the end of the part list.
@@ -962,13 +1057,46 @@ public static class Glyphs
 		List<Part> partList = SEB.method_502().field_3919;
 
 		int dispojackIndex = partList.FindIndex(x => x.method_1159() == DispoJack);
-		if (dispojackIndex >= 0 /*don't crash if there's no dispojack*/ && dispojackIndex != partList.Count - 1)
+		if (dispojackIndex >= 0) //neither null (-1) nor already at start of list (0)
 		{
 			Part dispojackElement = partList[dispojackIndex];
 			partList.RemoveAt(dispojackIndex);
-        	partList.Add(dispojackElement);
+        	partList.Insert(0, dispojackElement);
 		}
 		orig(SEB, param_5533, param_5534, param_5535, param_5536, param_5537, param_5538);
 	}
 
+	public static void DispoDrawDragged(On.PartDraggingInputMode.orig_method_1 orig, PartDraggingInputMode PDIM, SolutionEditorScreen SES)
+	{
+		//There are two ways that the game renders a glyph
+		//When it's on the board, it goes through SolutionedEditorBase.method_1984, then through SEB.method_1993 and finally SEB.method_1996
+		//When it's being dragged around, it goes through PartDraggingInputMode.method_1, then to SEB.method_1993 and finally SEB.method_1996
+		//Changing the order of when the Disposal Jack needs to be drawn--last--has to be done in the outer methods, since those are the ones that determine the order of when parts are drawn
+		//So DispoDrawInner() has to be called here too, otherwise the Disposal Jack does not render while it's being dragged
+
+		//Nice of the princess to invite of over for a picnic, eh, Luigi?
+		//I hope she made lotsa spaghetti!
+		orig(PDIM, SES);
+
+		Type PDIMtype = typeof(PartDraggingInputMode);
+		FieldInfo reflected_field_2711 = PDIMtype.GetField("field_2711", BindingFlags.NonPublic | BindingFlags.Instance); 
+		Vector2 vector = class_115.method_202() - (Vector2)reflected_field_2711.GetValue(PDIM);
+		FieldInfo reflected_field_2715 = PDIMtype.GetField("field_2715", BindingFlags.NonPublic | BindingFlags.Instance); 
+		SES.field_4019 = class_187.field_1742.method_491((HexIndex)reflected_field_2715.GetValue(PDIM), vector);
+
+		var current_interface = SES.field_4010;
+		var interfaceDyn = new DynamicData(current_interface);
+		var draggedParts = interfaceDyn.Get<List<PartDraggingInputMode.DraggedPart>>("field_2712");
+		foreach (PartDraggingInputMode.DraggedPart draggedpart in draggedParts)
+		{	//All the parts being dragged
+			if (draggedpart.field_2722.method_1159() != DispoJack){continue;} //Just the disposal jacks
+
+			Part dispojack = draggedpart.field_2722;
+			class_236 class_292 = SES.method_1989(dispojack, vector); 
+			class_195 renderer = new class_195(class_292.field_1984, class_292.field_1985, Editor.method_922());
+			DispoDrawInner(dispojack, SES, renderer, true /*no base*/);
+			//SolutionEditorScreen inherits from SolutionEditorBase, so you can apparently juse use a SES anywhere you would use a SEB
+			//You can tell I'm not formally educated in C# because that feels like it would lead to SO MUCH CONFUSION
+		}
+	}
 }
