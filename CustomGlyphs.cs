@@ -39,6 +39,12 @@ public static class Glyphs
 	public static string lefthandSoundName = "glyph_lefthand";
 	public static string infusionSoundName = "glyph_infusion";
 
+	public static Texture disproportion_base_L,disproportion_base_R,disproportion_connectors_L,disproportion_connectors_R,
+		disproportion_gloss_L,disproportion_gloss_R,disproportion_glossMask_L,disproportion_glossMask_R,
+		animismus_outputUnderIris, animismus_outputAboveIris,bonderShadow,
+		indeterminate_symbol,animismus_input,animismus_symbol;
+	public static Texture[] irisFullArray = new Texture[16];
+
 	public static Texture[] lettersFullArray = new Texture[16];
 	public static Texture dispojack_base = new Texture();
 	public static Texture dispojack_face = new Texture();
@@ -406,22 +412,27 @@ public static class Glyphs
 		//Logger.Log("Sure seems like it!");
 		
 		//Textures used by multiple glyphs
-		Texture animismus_input = class_235.method_615("textures/parts/input");
-		Texture animismus_symbol = class_235.method_615("textures/parts/animismus_symbol");
+		animismus_input = class_235.method_615("textures/parts/input");
+		animismus_symbol = class_235.method_615("textures/parts/animismus_symbol");
 		
+
+		
+
 		path = "textures/parts/disproportion/";
-		Texture disproportion_base_L = class_235.method_615(path + "base_L");
-		Texture disproportion_connectors = class_235.method_615(path + "connectors");
-		Texture disproportion_gloss = class_235.method_615(path + "gloss");
-		Texture disproportion_glossMask = class_235.method_615(path + "gloss_mask");
+		disproportion_base_L = class_235.method_615(path + "base_L");
+		disproportion_connectors_L = class_235.method_615(path + "connectors");
+		disproportion_gloss_L = class_235.method_615(path + "gloss");
+		disproportion_glossMask_L = class_235.method_615(path + "gloss_mask");
 		// Uses animismus_input
 		// Uses animismus_symbol
 		// Texture disproportion_outputAboveIris = class_235.method_615(path + "output_above_iris");
-		Texture disproportion_base_R = class_235.method_615(path + "base_R");
-		Texture disproportion_connectors_R = class_235.method_615(path + "connectors");
-		Texture disproportion_gloss_R = class_235.method_615(path + "gloss"); // todo: reference vanilla texture
-		Texture disproportion_glossMask_R = class_235.method_615(path + "gloss_mask");
-		Texture indeterminate_symbol = class_235.method_615(path + "indeterminate_symbol");
+
+
+		disproportion_base_R = class_235.method_615(path + "base_R");
+		disproportion_connectors_R = class_235.method_615(path + "connectors");
+		disproportion_gloss_R = class_235.method_615(path + "gloss"); // todo: reference vanilla texture
+		disproportion_glossMask_R = class_235.method_615(path + "gloss_mask");
+		indeterminate_symbol = class_235.method_615(path + "indeterminate_symbol");
 		// Uses animismus_input
 		// Uses animismus_symbol
 
@@ -454,10 +465,10 @@ public static class Glyphs
 
 
 		// fetch vanilla textures
-		Texture bonderShadow = class_238.field_1989.field_90.field_164;
+		bonderShadow = class_238.field_1989.field_90.field_164;
 		
-		Texture animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
-		Texture animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
+		animismus_outputAboveIris = class_238.field_1989.field_90.field_228.field_271;
+		animismus_outputUnderIris = class_238.field_1989.field_90.field_228.field_272;
 		Texture animismus_ringShadow = class_238.field_1989.field_90.field_228.field_273;
 
 
@@ -468,179 +479,19 @@ public static class Glyphs
 		Texture projectionGlyph_bond = class_238.field_1989.field_90.field_255.field_289;
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
 
-		Texture[] irisFullArray = class_238.field_1989.field_90.field_246;
+		irisFullArray = class_238.field_1989.field_90.field_246;
 		//Texture[] cracklesFullArray = MainClass.fetchTextureArray(10, "textures/parts/herriman/herriman_crackles.array/lightning_");
 		lettersFullArray = MainClass.fetchTextureArray(12, "animations/dispojack_flash.array/dispojack_flash_");
 		Texture[] discoFullArray = MainClass.fetchTextureArray(16, "animations/disco.array/disco_");
 
 		QApi.AddPartType(Disproportion, (part, pos, editor, renderer) =>
 		{
-			PartSimState partSimState = editor.method_507().method_481(part);
-			var simTime = editor.method_504();
-
-			var originHex = new HexIndex(0, 0);
-			var leftinputHex = new HexIndex(0, -1);
-			var rightinputHex = new HexIndex(1, -1);
-			var leftoutputHex = new HexIndex(-1, 0);
-			var rightoutputHex = new HexIndex(1, 0);
-
-			float partAngle = renderer.field_1798;
-			Vector2 base_offset = new Vector2(132f, 173f); //X-offset slightly different from the right-handed version due to image editing mistake
-
-			int index = irisFullArray.Length - 1;
-			//int cracklesIndex = cracklesFullArray.Length;
-
-			float num = 0f;
-			bool flag = false;
-			if (partSimState.field_2743) // Which iris frame to draw. If they're not opening, irises stay closed. 
-			{
-				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-			 	num = simTime;
-			 	flag = (double)simTime > 0.5;
-			}
-
-			bool Ldispojack = false;
-			bool Rdispojack = false;
-			foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
-			{	//Did you put a dispojack on me, istg
-				if (dispojack.method_1161() == leftoutputHex.Rotated(part.method_1163()) + part.method_1161())
-				{Ldispojack = true;}
-				if (dispojack.method_1161() == rightoutputHex.Rotated(part.method_1163()) + part.method_1161())
-				{Rdispojack = true;}
-			}
-
-			// bool doRightCrackles = Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(rightinputHex), out _) &&  Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(rightoutputHex), out _);
-			// bool doLeftCrackles = Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(leftinputHex), out _) &&  Wheel.HerrimanMolecule().method_1100().TryGetValue(part.method_1184(leftoutputHex), out _);
-
-			// //Let's try to make right-mediation crackles work
-			// if (partSimState.field_2743 & doRightCrackles)
-			// {
-			// 	cracklesIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * cracklesFullArray.Length), 0, cracklesFullArray.Length - 1);
-			// }
-			//if (partSimState.field_2743 && doLeftCrackles)
-			//{
-			//	cracklesIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * cracklesFullArray.Length), 0, cracklesFullArray.Length - 1);
-			//}
-
-			drawPartGraphic(renderer, disproportion_base_L, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(leftinputHex), new Vector2(0f, -3f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(rightinputHex), new Vector2(0f, -3f));
-			foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
-			{
-				var i = hex == leftoutputHex ? 0 : 1;
-				if(hex == rightoutputHex) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
-					{drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
-					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					drawPartGraphic(renderer, irisFullArray[irisFullArray.Length - 1 /*closed iris*/], textureCenter(irisFullArray[irisFullArray.Length - 1]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
-					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					}
-				else
-				{
-					drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
-					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (partSimState.field_2743 && !flag && !((i == 0 && Ldispojack) || (i == 1 && Rdispojack))/*Don't put a shadow under dispojack*/)
-					{	// if 
-						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
-					}
-					drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
-					
-					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (flag && !((i == 0 && Ldispojack) || (i == 1 && Rdispojack))/*Don't put a shadow under dispojack*/)
-					{
-						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
-					}
-				}
-			}
-
-			//more actual glyph components
-			if (index == irisFullArray.Length - 1) /*irises closed or almost-closed*/
-			{
-			drawPartGraphic(renderer, indeterminate_symbol, textureCenter(indeterminate_symbol), -partAngle, hexGraphicalOffset(leftoutputHex), new Vector2(-1f, -1f));
-			}
-			drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(leftinputHex), Vector2.Zero);
-			drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(rightinputHex), Vector2.Zero);
-			drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(leftinputHex), Vector2.Zero);
-			drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(rightinputHex), Vector2.Zero);
-			drawPartGraphic(renderer, disproportion_connectors, base_offset, 0f, new Vector2(-1f, 0f), Vector2.Zero);
-			drawPartGloss(renderer, disproportion_gloss, disproportion_glossMask, base_offset + new Vector2(-1f, 0f));
+			DrawChiralDisproportion(part, editor, renderer, true); //true means lefty
 		});
 
 		QApi.AddPartType(DisproportionR, (part, pos, editor, renderer) =>
 		{
-			PartSimState partSimState = editor.method_507().method_481(part);
-			var simTime = editor.method_504();
-
-			var originHex = new HexIndex(0, 0);
-			var leftinputHex = new HexIndex(0, -1);
-			var rightinputHex = new HexIndex(1, -1);
-			var leftoutputHex = new HexIndex(-1, 0);
-			var rightoutputHex = new HexIndex(1, 0);
-
-			float partAngle = renderer.field_1798;
-			Vector2 base_offset = new Vector2(133f, 173f); //X-offset slightly different from the right-handed version due to image editing mistake
-
-			int index = irisFullArray.Length - 1;
-
-			float num = 0f;
-			bool flag = false;
-			if (partSimState.field_2743) // Which iris frame to draw. If they're not opening, irises stay closed. 
-			{
-				index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
-			 	num = simTime;
-			 	flag = (double)simTime > 0.5;
-			}
-
-			bool Ldispojack = false;
-			bool Rdispojack = false;
-			foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
-			{	//Did you put a dispojack on me, istg
-				if (dispojack.method_1161() == leftoutputHex.Rotated(part.method_1163()) + part.method_1161())
-				{Ldispojack = true;}
-				if (dispojack.method_1161() == rightoutputHex.Rotated(part.method_1163()) + part.method_1161())
-				{Rdispojack = true;}
-			}
-
-			drawPartGraphic(renderer, disproportion_base_R, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(leftinputHex), new Vector2(0f, -3f));
-			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(rightinputHex), new Vector2(0f, -3f));
-			foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
-			{
-				var i = hex == leftoutputHex ? 0 : 1;
-				if(hex == rightoutputHex) // yum yum spaghetti; skip opening disposal-jacked iris and the dummy atom that would come out of it
-					{drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
-					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					drawPartGraphic(renderer, irisFullArray[irisFullArray.Length - 1 /*closed iris*/], textureCenter(irisFullArray[irisFullArray.Length - 1]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
-					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					}
-				else
-				{
-					drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
-					drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (partSimState.field_2743 && !flag && !((i == 0 && Rdispojack) || (i == 1 && Ldispojack))/*Don't put a shadow under dispojack*/)
-					{	// if 
-						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
-					}
-					drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
-					
-					drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-					if (flag && !((i == 0 && Rdispojack) || (i == 1 && Ldispojack))/*Don't put a shadow under dispojack*/)
-					{
-						drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
-					}
-				}
-			}
-			//more actual glyph components
-			if (index == irisFullArray.Length - 1) /*irises closed or almost-closed*/
-			{
-			drawPartGraphic(renderer, indeterminate_symbol, textureCenter(indeterminate_symbol), -partAngle, hexGraphicalOffset(rightoutputHex), new Vector2(-1f, -1f));
-			}
-			drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(leftinputHex), Vector2.Zero);
-			drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(rightinputHex), Vector2.Zero);
-			drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(leftinputHex), Vector2.Zero);
-			drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(rightinputHex), Vector2.Zero);			
-			drawPartGraphic(renderer, disproportion_connectors_R, base_offset, 0f, Vector2.Zero, Vector2.Zero);
-			drawPartGloss(renderer, disproportion_gloss_R, disproportion_glossMask_R, base_offset + new Vector2(-1f, 0f));
-		});
+			DrawChiralDisproportion(part, editor, renderer, false);		});
 
 		QApi.AddPartType(DispoJack, (part, pos, editor, renderer) =>
 		{
@@ -803,6 +654,98 @@ public static class Glyphs
 			drawPartGraphicSpecular(renderer, infusion_outputBowl, textureCenter(infusion_outputBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
 		});
 	}
+	public static void DrawChiralDisproportion(Part part, SolutionEditorBase editor, class_195 renderer, bool lefty)
+	{
+		HexIndex originHex, leftinputHex, rightinputHex, leftoutputHex, rightoutputHex;
+		if (lefty){
+		originHex = new HexIndex(0, 0);
+		leftinputHex = new HexIndex(0, -1);
+		rightinputHex = new HexIndex(1, -1);
+		leftoutputHex = new HexIndex(-1, 0);
+		rightoutputHex = new HexIndex(1, 0);
+		}
+		else{ //mirrored. The 'left' hexes are on the right for DisproportionR.  
+		originHex = new HexIndex(0, 0);
+		leftinputHex = new HexIndex(1, -1);
+		rightinputHex = new HexIndex(0, -1);
+		leftoutputHex = new HexIndex(1, 0);
+		rightoutputHex = new HexIndex(-1, 0);
+		}
+
+		PartSimState partSimState = editor.method_507().method_481(part);
+		var simTime = editor.method_504();
+
+		float partAngle = renderer.field_1798;
+		Vector2 base_offset = new Vector2(lefty?132f:133f, 173f); //X-offsets slightly different from the right-handed version due to image editing mistake
+
+		int index = irisFullArray.Length - 1;
+		//int cracklesIndex = cracklesFullArray.Length;
+
+		float num = 0f;
+		bool flag = false;
+		if (partSimState.field_2743) // Which iris frame to draw. If they're not opening, irises stay closed. 
+		{
+			index = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * irisFullArray.Length), 0, irisFullArray.Length - 1);
+			num = simTime;
+			flag = (double)simTime > 0.5;
+		}
+
+		bool Ldispojack = false;
+		bool Rdispojack = false;
+		foreach (Part dispojack in editor.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+		{	//Did you put a dispojack on me, istg
+			if (dispojack.method_1161() == leftoutputHex.Rotated(part.method_1163()) + part.method_1161())
+			{Ldispojack = true;}
+			if (dispojack.method_1161() == rightoutputHex.Rotated(part.method_1163()) + part.method_1161())
+			{Rdispojack = true;}
+		}
+
+		Texture disproportion_base = lefty ? disproportion_base_L : disproportion_base_R;
+		Texture disproportion_connectors = lefty ? disproportion_connectors_L : disproportion_connectors_R;
+		Texture disproportion_gloss = lefty ? disproportion_gloss_L : disproportion_gloss_R;
+		Texture disproportion_glossMask = lefty ? disproportion_glossMask_L : disproportion_glossMask_R;
+
+		drawPartGraphic(renderer, disproportion_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
+		drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(leftinputHex), new Vector2(0f, -3f));
+		drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(rightinputHex), new Vector2(0f, -3f));
+		foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
+		{
+			var i = hex == leftoutputHex ? 0 : 1;
+			bool drawshadow = !((Ldispojack && hex == leftoutputHex) || (Rdispojack && hex == rightoutputHex));
+			//^We can skip drawing an emerging atom if there's a Dispojack over the iris
+			//You can see an emerging atom's shadow coming out from under it and it's unsightly
+			//I will eventually figure out how to skip the atom shadows for the Glyph of Animismus too
+			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
+			drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+			if (partSimState.field_2743 && !flag && drawshadow)
+			{
+				drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
+			}
+			drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
+			drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
+			if (flag && drawshadow)
+			{
+				drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
+			}
+		}
+
+		//more actual glyph components
+		if (index == irisFullArray.Length - 1) /*irises closed or almost-closed*/
+		{
+		drawPartGraphic(renderer, indeterminate_symbol, textureCenter(indeterminate_symbol), -partAngle, hexGraphicalOffset(leftoutputHex), new Vector2(-1f, -1f));
+		}
+		drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(leftinputHex), Vector2.Zero);
+		drawPartGraphicSpecular(renderer, animismus_input, textureCenter(animismus_input), 0f, hexGraphicalOffset(rightinputHex), Vector2.Zero);
+		drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(leftinputHex), Vector2.Zero);
+		drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(rightinputHex), Vector2.Zero);
+		drawPartGraphic(renderer, disproportion_connectors, base_offset, 0f, lefty ? new Vector2(-1f, 0f) : Vector2.Zero, Vector2.Zero); //X-offset issue
+		drawPartGloss(renderer, disproportion_gloss, disproportion_glossMask, base_offset + new Vector2(-1f, 0f));
+
+
+
+		
+	
+	}	
 
 	public static bool mirrorDispro(SolutionEditorScreen ses, Part part, bool mirrorVert, HexIndex pivot)
 	{
@@ -859,7 +802,7 @@ public static class Glyphs
 	x => x.MatchLdloc(0),
 	x => x.MatchLdloc(106)
 		))
-		Logger.Log("First shadow-drawing injection: "+gremlin.Index);
+		//Logger.Log("First shadow-drawing injection: "+gremlin.Index);
 		//Get rid of the code so we can reimplement it wrapped in an if-statement
 		gremlin.RemoveRange(21);
 
@@ -878,7 +821,7 @@ public static class Glyphs
 		gremlin.Emit(OpCodes.Ldarg_1);
 
 		//Use them to do this
-		Logger.Log("gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,HexIndex,class_236,Part>>((SEB,param_5584,num17,hexIndex6,class_,part) => ");
+		//Logger.Log("gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,HexIndex,class_236,Part>>((SEB,param_5584,num17,hexIndex6,class_,part) => ");
 		gremlin.EmitDelegate<Action<SolutionEditorBase,float,int,HexIndex,class_236,Part>>((SEB,param_5584,num17,hexIndex6,class_,part) => 
 			{	
 				foreach (var dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == DispoJack))
@@ -973,7 +916,7 @@ public static class Glyphs
 		gremlin.Emit(OpCodes.Ldarg_1);
 
 		//Use them to do this
-		Logger.Log("gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => ");
+		//Logger.Log("gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => ");
 		gremlin.EmitDelegate<Action<Part[], SolutionEditorBase, Vector2>>((glyphlist, SEB, param_5533) => 
 			{	
 			foreach (var dispojack in glyphlist.Where(x => x.method_1159() == DispoJack))

@@ -879,16 +879,16 @@ public class MainClass : QuintessentialMod
 		//Remove the "spawn atom collider" code 
 		gremlin.RemoveRange(15);
 		//Grab the current Sim so we can reference anything on the board we want by hitting it with methods until the info falls out
-		Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
+		//Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
 		gremlin.Emit(OpCodes.Ldarg_0);
 		//Grab local variable #6; it's a class that's keeping track of which glyph we're messing with
 		//If you want to mess with the deets of any other vanilla glyph, you will probably end up in orig_method_1832 and grabbing local variable #6, too
-		Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
+		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)6);
 
 		//Grab the index of the for{} loop this code is in; I need it to know which iris we're talking about. j == 0 means vitae, j == 1 means mors
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)32);
-		Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 32);");
+		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 32);");
 
 		//I don't actually need to do this inside the for-loop, but there are these things called IL labels and
 		//I don't
@@ -958,18 +958,18 @@ public class MainClass : QuintessentialMod
 		//Remove the rest of the "spawn vitae and mors" code 
 		gremlin.RemoveRange(30);
 		//Grab the current Sim so we can reference anything on the board we want by hitting it with methods until the info falls out
-		Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
+		//Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
 		gremlin.Emit(OpCodes.Ldarg_0);
 		//Grab local variable #6; it's a class that's keeping track of which glyph we're messing with
 		//If you want to mess with the deets of any other vanilla glyph, you will probably end up in orig_method_1832 and grabbing local variable #6, too
-		Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
+		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)6);
 		//Use them to do this
-		Logger.Log("gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => ");
+		//Logger.Log("gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => ");
 		gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => 
 			{	
 				Part part = tracker.field_3841;
-				Logger.Log(part.method_1159());
+				//Logger.Log(part.method_1159());
 				SolutionEditorBase SEB = sim_self.field_3818;
 
 				bool blockvitae = false;
