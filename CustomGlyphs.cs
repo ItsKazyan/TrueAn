@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
 
-//A LOT OF THIS IS SHAMELESSLY COPIED FROM REDUCTIVE METALLURGY, YAY FOR OPEN SOURCE
+//OVerall structure of the code and a whole bunch of helper methods are from Reductive Metallurgy, yay for open source
 
 namespace TrueAnimismus;
 
@@ -117,10 +117,8 @@ public static class Glyphs
 		foreach (var dir in QuintessentialLoader.ModContentDirectories)
 		{
 			string disproPath = Path.Combine(dir, "Content/sounds/" + disproportionSoundName + ".wav");
-			//Logger.Log(disproPath);
 			if (File.Exists(disproPath))
 			{
-				//Logger.Log("We got here--sounds loading!");
 				disproportionSound = new Sound()
 				{
 					field_4060 = Path.GetFileNameWithoutExtension(disproPath),
@@ -189,12 +187,12 @@ public static class Glyphs
 	}
 	#endregion
 
-	private static bool AtopAnotherPart(Part part, Solution soln)
-	{
-		HashSet<HexIndex> hashSet = part.method_1187(soln, (enum_137)0, part.method_1161(), part.method_1163()); /*Hex footprint of the one passed here*/
-		HashSet<HexIndex> other = soln.method_1947(part, (enum_137)0); /*Hex footprints of every part that's not the one passed here*/
-		return hashSet.Overlaps(other); //Atop another part if Overlaps() returns true
-	}
+	// private static bool AtopAnotherPart(Part part, Solution soln)
+	// {
+	// 	HashSet<HexIndex> hashSet = part.method_1187(soln, (enum_137)0, part.method_1161(), part.method_1163()); /*Hex footprint of the one passed here*/
+	// 	HashSet<HexIndex> other = soln.method_1947(part, (enum_137)0); /*Hex footprints of every part that's not the one passed here*/
+	// 	return hashSet.Overlaps(other); //Atop another part if Overlaps() returns true
+	// }
 	private static bool GlyphBelowIsFiring(Part part, SolutionEditorBase SEB)
 	{	
 		//Jank code because I don't actually understand the right way to use HexIndexes. 
@@ -210,15 +208,15 @@ public static class Glyphs
 			}
 		return false;
 	}
-	private static bool PartsIntersect(Part part1, Part part2, Solution soln)
-	{
-		HashSet<HexIndex> part1footprint = part1.method_1187(soln, (enum_137)0, part1.method_1161(), part1.method_1163()); /*Hex footprint*/
-		HashSet<HexIndex> part2footprint = part2.method_1187(soln, (enum_137)0, part2.method_1161(), part2.method_1163()); /*Hex footprint*/
-				
-		return part1footprint.Overlaps(part2footprint); //Atop another part if Overlaps() returns true
-	}
+    // private static bool PartsIntersect(Part part1, Part part2, Solution soln)
+    // {
+    // 	HashSet<HexIndex> part1footprint = part1.method_1187(soln, (enum_137)0, part1.method_1161(), part1.method_1163()); /*Hex footprint*/
+    // 	HashSet<HexIndex> part2footprint = part2.method_1187(soln, (enum_137)0, part2.method_1161(), part2.method_1163()); /*Hex footprint*/
 
-	public static bool AtopIrisHoverHex(Part irispart, HexIndex hoverhex, Solution soln)
+    // 	return part1footprint.Overlaps(part2footprint); //Atop another part if Overlaps() returns true
+    // }
+
+    public static bool AtopIrisHoverHex(Part irispart, HexIndex hoverhex, Solution soln)
 	{
 		HashSet<HexIndex> hh = new HashSet<HexIndex>   {hoverhex};
 		HashSet<HexIndex> irisfootprint = new HashSet<HexIndex>();
@@ -306,7 +304,6 @@ public static class Glyphs
 		API.addDisproportionRule(ModdedAtoms.RedVitae, ModdedAtoms.TrueVitae, API.vitaeAtomType);
 		API.addDisproportionRule(API.morsAtomType, ModdedAtoms.GreyMors, API.saltAtomType);
 		API.addDisproportionRule(ModdedAtoms.GreyMors,ModdedAtoms.TrueMors, API.morsAtomType);
-		// //TODO: Will also work with true vitae/mors iff Herriman's Wheel cooperates, so that's probably to be covered in Herriman's Wheel code
 
 		API.addLeftHandRule(API.vitaeAtomType, API.morsAtomType);
 		API.addLeftHandRule(ModdedAtoms.RedVitae, ModdedAtoms.GreyMors);
@@ -314,7 +311,7 @@ public static class Glyphs
 		API.addLeftHandRule(API.morsAtomType, API.vitaeAtomType);		
 		API.addLeftHandRule(ModdedAtoms.GreyMors, ModdedAtoms.RedVitae);
 		API.addLeftHandRule(ModdedAtoms.TrueMors, ModdedAtoms.TrueVitae);
-		API.addLeftHandRule(API.saltAtomType, API.saltAtomType); //Kind of an easter egg
+		API.addLeftHandRule(API.saltAtomType, API.saltAtomType); //0 x -1 = 0
 		Logger.Log("Adding Glyph Rules for the higher grades of animismus!");
 
 		LoadAllCustomSounds();
@@ -367,12 +364,6 @@ public static class Glyphs
 			"TrueAnimismus:dispojack",
 			true // Only one dispojack per solution
 		);
-		
-
-		// class_238.field_1989.field_97.field_382, // single_glow
-		// class_238.field_1989.field_97.field_383, // single_stroke
-		// class_235.method_615(selectpath + "line_glow"),
-
 
 		LeftHand = makeGlyph(
 		 	"true-animismus-lefthand",
@@ -381,8 +372,6 @@ public static class Glyphs
 		 	20, new HexIndex[3] { new HexIndex(0, 0), new HexIndex(1, 0), new HexIndex(-1, 0) },
 		 	class_235.method_615(iconpath + "lefthand"),
 		 	class_235.method_615(iconpath + "lefthand_hover"),
-			// 	class_235.method_615(iconpath + "lefthand"),
-			// 	class_235.method_615(iconpath + "lefthand_hover"),
 		 	class_235.method_615(selectpath + "line_glow"),
 		 	class_235.method_615(selectpath + "line_stroke"),
 		 	"TrueAnimismus:lefthand"
@@ -404,19 +393,14 @@ public static class Glyphs
 		var purifier = PartTypes.field_1779;
 		var animismer = PartTypes.field_1780;
 		var disposer = PartTypes.field_1781;
-		//Logger.Log("Did we get here?");
-		QApi.AddPartTypeToPanel(Disproportion, animismer); //Don't add right-handed Disproportion; you get that by pressing C while dragging Disp
+		QApi.AddPartTypeToPanel(Disproportion, animismer); //Don't add right-handed Disproportion; you get that by pressing C while dragging left-handed Disproportion
 		QApi.AddPartTypeToPanel(DispoJack, disposer); 
 		QApi.AddPartTypeToPanel(LeftHand, animismer);
 		QApi.AddPartTypeToPanel(Infusion, animismer);
-		//Logger.Log("Sure seems like it!");
 		
 		//Textures used by multiple glyphs
 		animismus_input = class_235.method_615("textures/parts/input");
 		animismus_symbol = class_235.method_615("textures/parts/animismus_symbol");
-		
-
-		
 
 		path = "textures/parts/disproportion/";
 		disproportion_base_L = class_235.method_615(path + "base_L");
@@ -425,8 +409,6 @@ public static class Glyphs
 		disproportion_glossMask_L = class_235.method_615(path + "gloss_mask");
 		// Uses animismus_input
 		// Uses animismus_symbol
-		// Texture disproportion_outputAboveIris = class_235.method_615(path + "output_above_iris");
-
 
 		disproportion_base_R = class_235.method_615(path + "base_R");
 		disproportion_connectors_R = class_235.method_615(path + "connectors");
@@ -442,9 +424,7 @@ public static class Glyphs
 		dispojack_details = class_235.method_615(path + "details");
 
 		path = "textures/parts/lefthand/";
-		Texture lefthand_base = class_235.method_615(path + "base"); // Placeholder for testing -- just draw the base
-		// Texture lefthand_base = class_235.method_615(path + "base");
-		// Texture lefthand_connectors = class_235.method_615(path + "connectors");
+		Texture lefthand_base = class_235.method_615(path + "base"); 
 		Texture lefthand_gloss = class_235.method_615(path + "gloss");
 		Texture lefthand_glossMask = class_235.method_615(path + "gloss_mask");
 		// Uses animismus_input
@@ -452,10 +432,9 @@ public static class Glyphs
 		Texture lefthand_markerDetails = class_235.method_615(path + "marker_details");
 		Texture lefthand_markerLighting = class_235.method_615(path + "marker_lighting");
 
-		path = "textures/parts/infusion/"; //Infusion is probably the simplest to draw; let's start here when fancying it up.
+		path = "textures/parts/infusion/"; 
 		Texture infusion_base = class_235.method_615(path + "base");
 		Texture infusion_inputBowl = class_235.method_615(path + "big_bowl");
-		//Texture infusion_pointer = class_235.method_615(path + "pointer_line");
 		Texture infusion_gloss = class_235.method_615(path + "gloss");
 		Texture infusion_glossMask = class_235.method_615(path + "gloss_mask");
 		Texture infusion_connectors = class_235.method_615(path + "connectors");
@@ -480,7 +459,6 @@ public static class Glyphs
 		Texture projectionGlyph_quicksilverInput = class_238.field_1989.field_90.field_255.field_293;
 
 		irisFullArray = class_238.field_1989.field_90.field_246;
-		//Texture[] cracklesFullArray = MainClass.fetchTextureArray(10, "textures/parts/herriman/herriman_crackles.array/lightning_");
 		lettersFullArray = MainClass.fetchTextureArray(12, "animations/dispojack_flash.array/dispojack_flash_");
 		Texture[] discoFullArray = MainClass.fetchTextureArray(16, "animations/disco.array/disco_");
 
@@ -491,66 +469,14 @@ public static class Glyphs
 
 		QApi.AddPartType(DisproportionR, (part, pos, editor, renderer) =>
 		{
-			DrawChiralDisproportion(part, editor, renderer, false);		});
+			DrawChiralDisproportion(part, editor, renderer, false);	//false means righty
+		});
 
 		QApi.AddPartType(DispoJack, (part, pos, editor, renderer) =>
 		{
-			// // Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus, but DispoJack handles its own drawing
-			// PartSimState partSimState = editor.method_507().method_481(part);
-			// var simTime = editor.method_504();
-			// var originHex = new HexIndex(0, 0);
-
-			// float partAngle = renderer.field_1798;
-			// Vector2 base_offset = textureCenter(dispojack_base);
-			// int lettersFlashIndex = lettersFullArray.Length - 1;
-
-			// // Draw DispoJack base only if it's not currently being a cap.
-			// // Possible DispoJack placements: any iris of an animismus-produciton glyph
-
-			// //bool nobase = AtopAnotherPart(part, editor.method_502());
-			// bool nobase = false;
-			// foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
-			// 	x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
-			// 	x.method_1159() == Disproportion || 
-			// 	x.method_1159() == DisproportionR ||
-			// 	x.method_1159() == LeftHand))
-			// {
-			// 	if (AtopIris(cappablepart,part,editor.method_502())) {nobase = true;}
-			// 	/*I am sorry about having to pass editor.method_502(),
-			// 	I do not like having to say the magic words before it opens sesame either,
-			// 	I wish Solution and SolutionEditorBase etc were global so I could just
-			// 	use them
-			// 	whenever I wanted
-			// 	instead of having to do this
-			// 	for every function that does anything interesting
-			// 	but I know there's a good reason I can't do that*/
-			// }
-
-			// // if (!nobase)
-			// // {
-			// // 	drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
-			// // 	if (DispoJack.field_1549 != circleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,circleglow);} 
-			// // 	if (DispoJack.field_1550 != circlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,circlestroke);} 
-			// // 	//Why the if-statements, if the variable has to end up as circlewhatever anyway? Because I don't wanna write a whole texture to the variable every frame
-			// // }
-			// // else
-			// // {
-			// // 	if (DispoJack.field_1549 != singleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,singleglow);}
-			// // 	if (DispoJack.field_1550 != singlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,singlestroke);} 
-			// // 	//Same deal
-			// // }
-
-			// drawPartGraphicSpecular(renderer, dispojack_face, textureCenter(dispojack_face), 0f, Vector2.Zero, Vector2.Zero);	
-			// drawPartGraphic(renderer, dispojack_details, textureCenter(dispojack_details), -partAngle, Vector2.Zero, Vector2.Zero);			
-			// // No gloss
-
-			// //Letter Flash
-			// if (GlyphBelowIsFiring(part, editor))
-			// 	{
-			// 		lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
-			// 		// draw letter flash if needed
-			// 		drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
-			// 	}
+			// This space intentionally left blank
+			// Disposal Jack has to be drawn in a special way--after every other glyph
+			// This is done 'manually' elsewhere 
 		});
 
 		QApi.AddPartType(LeftHand, (part, pos, editor, renderer) =>
@@ -650,7 +576,7 @@ public static class Glyphs
 			drawPartGraphicSpecular(renderer, infusion_inputBowl, textureCenter(infusion_inputBowl), 0f, hexGraphicalOffset(inputHex), Vector2.Zero);
 			drawPartGraphic(renderer, infusion_animismusSymbolDown, textureCenter(infusion_animismusSymbolDown), -partAngle, hexGraphicalOffset(inputHex), Vector2.Zero);
 
-		// 	//draw reciever bowl
+		 	//draw reciever bowl
 			drawPartGraphicSpecular(renderer, infusion_outputBowl, textureCenter(infusion_outputBowl), 0f, hexGraphicalOffset(outputHex), Vector2.Zero);
 		});
 	}
@@ -679,7 +605,6 @@ public static class Glyphs
 		Vector2 base_offset = new Vector2(lefty?132f:133f, 173f); //X-offsets slightly different from the right-handed version due to image editing mistake
 
 		int index = irisFullArray.Length - 1;
-		//int cracklesIndex = cracklesFullArray.Length;
 
 		float num = 0f;
 		bool flag = false;
@@ -708,12 +633,12 @@ public static class Glyphs
 		drawPartGraphic(renderer, disproportion_base, base_offset, 0f, Vector2.Zero, new Vector2(-1f, -1f));
 		drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(leftinputHex), new Vector2(0f, -3f));
 		drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(rightinputHex), new Vector2(0f, -3f));
-		foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // This is Deposition's code from RM
+		foreach (var hex in new HexIndex[2] { leftoutputHex, rightoutputHex }) // Tweaking Deposition's code from RM
 		{
 			var i = hex == leftoutputHex ? 0 : 1;
 			bool drawshadow = !((Ldispojack && hex == leftoutputHex) || (Rdispojack && hex == rightoutputHex));
 			//^We can skip drawing an emerging atom if there's a Dispojack over the iris
-			//You can see an emerging atom's shadow coming out from under it and it's unsightly
+			//You can otherwise see an emerging atom's shadow coming out from under it and it's unsightly
 			//I will eventually figure out how to skip the atom shadows for the Glyph of Animismus too
 			drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
 			drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
@@ -740,11 +665,6 @@ public static class Glyphs
 		drawPartGraphic(renderer, animismus_symbol, textureCenter(animismus_symbol), -partAngle, hexGraphicalOffset(rightinputHex), Vector2.Zero);
 		drawPartGraphic(renderer, disproportion_connectors, base_offset, 0f, lefty ? new Vector2(-1f, 0f) : Vector2.Zero, Vector2.Zero); //X-offset issue
 		drawPartGloss(renderer, disproportion_gloss, disproportion_glossMask, base_offset + new Vector2(-1f, 0f));
-
-
-
-		
-	
 	}	
 
 	public static bool mirrorDispro(SolutionEditorScreen ses, Part part, bool mirrorVert, HexIndex pivot)
@@ -768,7 +688,7 @@ public static class Glyphs
 		FTSIGCTU.MirrorTool.addRule(Wheel.Herriman, FTSIGCTU.MirrorTool.mirrorVanBerlo);
 	}
 
-	private static ILHook dispodrawhook, dontdrawhook;
+	public static ILHook dispodrawhook, dontdrawhook;
 
 	public static void DispoDrawHook()
 	{
@@ -787,6 +707,9 @@ public static class Glyphs
 	public static void DontDrawAtomIOUnderDispo(ILContext il){
 	//There are so many things I have to dig around in for the glyph of animismus to make the Dispojack work on it.
 	//This one is for drawing emerging atoms.
+	//However, this code doesn't work right, and I'm not actually sure why
+	//Ergo it's quarantined and never being called, but I leave it here as an example
+	//This is one of the big things to work on for an update to True Animismus
 	var gremlin = new ILCursor(il);
 	gremlin.Goto(1800); //somewhere shortly before the right place in the code
 	
@@ -802,7 +725,6 @@ public static class Glyphs
 	x => x.MatchLdloc(0),
 	x => x.MatchLdloc(106)
 		))
-		//Logger.Log("First shadow-drawing injection: "+gremlin.Index);
 		//Get rid of the code so we can reimplement it wrapped in an if-statement
 		gremlin.RemoveRange(21);
 
@@ -931,9 +853,7 @@ public static class Glyphs
 
 	private static void DispoDrawInner(Part part, SolutionEditorBase editor, class_195 renderer, bool dragging)
 	{
-		// Functionality of the DispoJack is coded in the glyph of disproportion, left hand, and animismus whenever I can make that last one work, but DispoJack handles its own drawing
-		// TODO: Code functionality for the glyph of animismus
-		// TODO: Make dispojack always be on top.
+		// Functionality of the DispoJack is coded in the glyphs of disproportion, left hand, and animismus, but DispoJack handles its own drawing
 		PartSimState partSimState = editor.method_507().method_481(part);
 		var simTime = editor.method_504();
 		var originHex = new HexIndex(0, 0);
@@ -944,8 +864,6 @@ public static class Glyphs
 
 		// Draw DispoJack base only if it's not currently being a cap.
 		// Possible DispoJack placements: any iris of an animismus-produciton glyph
-
-		//bool nobase = AtopAnotherPart(part, editor.method_502());
 		bool nobase = false;
 		foreach (Part cappablepart in editor.method_502().field_3919.Where(x => 
 			x.method_1159() == PartTypes.field_1780/*Glyph of Animismus*/ || 
@@ -961,7 +879,8 @@ public static class Glyphs
 			whenever I wanted
 			instead of having to do this
 			for every function that does anything interesting
-			but I know there's a good reason I can't do that*/
+			but I know there's a good reason I can't do that
+			e.g. There is a whole second instance of SolutionEditorBase when a tip is open*/
 		}
 
 		if (!nobase && !dragging)
@@ -969,7 +888,9 @@ public static class Glyphs
 			drawPartGraphic(renderer, dispojack_base, base_offset, -partAngle, Vector2.Zero, Vector2.Zero);
 			if (DispoJack.field_1549 != singleglow) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1549"/*glow (shadow)*/,singleglow);}
 			if (DispoJack.field_1550 != singlestroke) {new DynamicData(DispoJack /*The entire part type*/).Set("field_1550"/*stroke (outline)*/,singlestroke);} 
-			//Same deal
+			//If you hack in an additional Disposal Jack, all of their glows and strokes and bases and stuff might sync up,
+			//Because I'm changing the data for the entire part type
+			//There be dragons
 }
 		else
 		{
@@ -986,16 +907,14 @@ public static class Glyphs
 		if (GlyphBelowIsFiring(part, editor))
 		{
 			lettersFlashIndex = class_162.method_404((int)(class_162.method_411(1f, -1f, simTime) * lettersFullArray.Length), 0, lettersFullArray.Length - 1);
-			// draw letter flash if needed
 			drawPartGraphic(renderer, lettersFullArray[lettersFlashIndex], textureCenter(lettersFullArray[lettersFlashIndex]), -partAngle, hexGraphicalOffset(originHex), Vector2.Zero);		
 		}
 	}
-	public static void dispojackToEndOfList(On.SolutionEditorBase.orig_method_1984 orig, SolutionEditorBase SEB, Vector2 param_5533, Bounds2 param_5534, Bounds2 param_5535, bool param_5536, Maybe<List<Molecule>> param_5537, bool param_5538)
+	public static void dispojackToStartOfList(On.SolutionEditorBase.orig_method_1984 orig, SolutionEditorBase SEB, Vector2 param_5533, Bounds2 param_5534, Bounds2 param_5535, bool param_5536, Maybe<List<Molecule>> param_5537, bool param_5538)
 	{
-		//Make the disposal jack always drawn last by clamping it to the end of the part list.
+		//Make the disposal jack always able to be picked up by clamping it to the start of the part list
 		//THIS IS NOT HOW I'M SUPPOSED TO DO IT
-		//Whenever you try to grab funny bottlecap from a glyph, you grab the glyph instead
-		//And any other code that messes with the part list will probably dislike this a lot
+		//Other code that messes with the part list may end up allergic to this
 
 		List<Part> partList = SEB.method_502().field_3919;
 
@@ -1012,9 +931,9 @@ public static class Glyphs
 	public static void DispoDrawDragged(On.PartDraggingInputMode.orig_method_1 orig, PartDraggingInputMode PDIM, SolutionEditorScreen SES)
 	{
 		//There are two ways that the game renders a glyph
-		//When it's on the board, it goes through SolutionedEditorBase.method_1984, then through SEB.method_1993 and finally SEB.method_1996
+		//When it's on the board, it goes through SolutionEditorBase.method_1984 (we'll call SolutionEditorBase "SEB"), then through SEB.method_1993 and finally SEB.method_1996
 		//When it's being dragged around, it goes through PartDraggingInputMode.method_1, then to SEB.method_1993 and finally SEB.method_1996
-		//Changing the order of when the Disposal Jack needs to be drawn--last--has to be done in the outer methods, since those are the ones that determine the order of when parts are drawn
+		//Changing the order of when the Disposal Jack needs to be drawn--last--has to be done in the outer methods, since those are the ones that know that more than one part exists
 		//So DispoDrawInner() has to be called here too, otherwise the Disposal Jack does not render while it's being dragged
 
 		//Nice of the princess to invite of over for a picnic, eh, Luigi?

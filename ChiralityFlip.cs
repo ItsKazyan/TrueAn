@@ -57,6 +57,13 @@ public static class ChiralityFlip
 	private static PartType getDraggedPartType(PartDraggingInputMode.DraggedPart draggedPart) => getPartType(draggedPart.field_2722);
     public static void SolutionEditorScreen_method_50(SolutionEditorScreen SES_self)
         {   
+            //The better way to do this is something like
+            //1. Get all the parts in the selection that are Disproportion or DisproportionR
+            //2. Use DynamicData magic to change them into opposite chirality
+            //3. That's it, that's the strat
+
+            //However, I don't understand the DraggedPart class so I bodged this together from FTSIGCTU snippets
+
             var current_interface = SES_self.field_4010;
             bool inDraggingMode = current_interface.GetType() == new PartDraggingInputMode().GetType();
             bool flipItGood = Input.IsSdlKeyPressed(SDL.enum_160.SDLK_c); // Press C to Flip
@@ -69,7 +76,7 @@ public static class ChiralityFlip
             // time to flip chiralities!
             var interfaceDyn = new DynamicData(current_interface);
             var draggedParts = interfaceDyn.Get<List<PartDraggingInputMode.DraggedPart>>("field_2712");
-            //if (draggedParts.Count != 1) {MainClass.playSoundWithVolume(class_238.field_1991.field_1872, 0.5f); return;} // Only flip if we're dragging a single part; FTSIGCTU beep if multiple parts
+            if (draggedParts.Count != 1) {MainClass.playSoundWithVolume(class_238.field_1991.field_1872, 0.5f); return;} // Only flip if we're dragging a single part; FTSIGCTU beep if multiple parts
             var cursorHex = interfaceDyn.Get<HexIndex>("field_2715");
 
             var ChiralityFlippedParts = new List<PartDraggingInputMode.DraggedPart>();

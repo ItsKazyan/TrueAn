@@ -15,13 +15,15 @@ using AtomTypes = class_175;
 
 public static class API
 {
+	//This is called an API, but it's not really; it's a bunch of helper methods
+	
+	//I didn't bother to make it right while I was learning how to mod
+
 	public const string DisproportionPermission = "TrueAnimismus:disproportion";
 	public const string DispoJackPermission = "TrueAnimismus:dispojack";
 	public const string LeftHandPermission = "TrueAnimismus:lefthand";
 	public const string InfusionPermission = "TrueAnimismus:infusion";
 	public const string HerrimanPermission = "TrueAnimismus:herriman";
-
-	//Infusion is not available in this API yet due to a coding skill issue, and is hardcoded elsewhere.
 
 	public static MethodInfo PrivateMethod<T>(string method) => typeof(T).GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
@@ -87,9 +89,6 @@ public static class API
 // }
 	//public static bool applyInfusionRule(AtomType inputHi, AtomType inputLo, out AtomType translowered, out AtomType transraised)
 
-	//public static void addRejectionRule(AtomType hi, AtomType lo) => addTRule("rejection", hi, lo, rejectDict, new List<AtomType> { quicksilverAtomType, leadAtomType });
-	//public static void addDepositionRule(AtomType input, AtomType outputHi, AtomType outputLo) => addTRule("deposition", input, new Pair<AtomType, AtomType>(outputHi, outputLo), depositDict, new List<AtomType> { quicksilverAtomType, leadAtomType });
-	//public static void addProliferationRule(AtomType selector) => addTRule("proliferation", selector, selector, prolifDict, new List<AtomType> { quicksilverAtomType });
 	public static void addDisproportionRule(AtomType input, AtomType outputHi, AtomType outputLo) => addTRule("disproportion", input, new Pair<AtomType, AtomType>(outputHi, outputLo), disproportionDict, new List<AtomType> { saltAtomType }); //Can't disproportionate salt
 	public static void addLeftHandRule(AtomType input, AtomType output) => addTRule("lefthand", input, output, lefthandDict, new List<AtomType> { }); //No explicitly banned atoms for Left Hand yet
 	// public static void addInfusionRule(AtomType inputHi, AtomType inputLo, AtomType outputHi, AtomType outputLo)

@@ -25,13 +25,9 @@ using Texture = class_256;
 public class MainClass : QuintessentialMod
 	{
 	// resources
-	static Texture[] projectAtomAnimation => class_238.field_1989.field_81.field_614;
 	static Texture[] donorAnimation, receiverAnimation;
 
 	static Sound animismusActivate => class_238.field_1991.field_1838;
-	static Sound projectionActivate => class_238.field_1991.field_1844;
-	static Sound duplicationActivate => class_238.field_1991.field_1843;
-	static Sound purificationActivate => class_238.field_1991.field_1845;
 
 
 	// helper functions
@@ -61,11 +57,8 @@ public class MainClass : QuintessentialMod
 	{
 		donorAnimation = MainClass.fetchTextureArray(12, "animations/donor_effect.array/donor_");
 		receiverAnimation = MainClass.fetchTextureArray(12, "animations/receiver_effect.array/receiver_");
-		//Logger.Log(donorAnimation.Length);
-		//Logger.Log(receiverAnimation.Length);
 	}
 
-	// List<AtomType> atomsToAdd;
 	public override void Load() { 
 	}
 	public override void LoadPuzzleContent()
@@ -93,7 +86,7 @@ public class MainClass : QuintessentialMod
 		AnimismusFiringHook();
 		QApi.RunAfterCycle(My_Method_1832);
 		IL.SolutionEditorBase.method_1984 += drawHerrimanWheelAtoms;
-		On.SolutionEditorBase.method_1984 += Glyphs.dispojackToEndOfList;
+		On.SolutionEditorBase.method_1984 += Glyphs.dispojackToStartOfList;
 		Glyphs.DispoDrawHook();
 		On.PartDraggingInputMode.method_1 += Glyphs.DispoDrawDragged;
 		//Glyphs.DontDrawHook(); //I'll fix the atom shadows problem later
@@ -168,15 +161,6 @@ public class MainClass : QuintessentialMod
 			SEB.field_3937.Add(new class_286(SEB, atomRef.field_2278, atomRef.field_2280));
 		}
 
-		// void changeAtomTypeWithFlash(AtomReference atomReference, AtomType newAtomType)
-		// {
-		// 	// change atom type
-		// 	var molecule = atomReference.field_2277;
-		// 	molecule.method_1106(newAtomType, atomReference.field_2278);
-		// 	// draw projection/flash animation
-		// 	atomReference.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomReference.field_2280, projectAtomAnimation, 30f);
-		// }
-
 		void changeAtomTypeDonorAnimation(AtomReference atomReference, AtomType newAtomType)
 		{
 			// change atom type
@@ -184,7 +168,6 @@ public class MainClass : QuintessentialMod
 			molecule.method_1106(newAtomType, atomReference.field_2278);
 			// draw donor animation
 			atomReference.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomReference.field_2280, donorAnimation, 30f);
-			//Logger.Log(donorAnimation.Length);
 		}
 
 		void changeAtomTypeReceiverAnimation(AtomReference atomReference, AtomType newAtomType)
@@ -194,37 +177,38 @@ public class MainClass : QuintessentialMod
 			molecule.method_1106(newAtomType, atomReference.field_2278);
 			// draw receiver animation
 			atomReference.field_2279.field_2276 = (Maybe<class_168>)new class_168(SEB, (enum_7)0, (enum_132)1, atomReference.field_2280, receiverAnimation, 30f);
-			//Logger.Log(receiverAnimation.Length);
 		}
 
-		AtomType DetermineHerrimanOutputResult(AtomType OutMediator, bool UpOrDown)
-		{	// Don't do it like this. real programmers use dicts. I tried to use a switch statement, but the compiler didn't like it.
-			if (OutMediator == ModdedAtoms.TrueMors)
-				{
-					if (!UpOrDown) {Logger.Log("[TrueAnimismus] Tried to add mors to already True Mors in Herriman's Wheel. This is a bug. Report it!");};
-					return UpOrDown ? ModdedAtoms.GreyMors : ModdedAtoms.TrueMors;
-				};
-			if (OutMediator == ModdedAtoms.GreyMors)
-				{return UpOrDown ? API.morsAtomType : ModdedAtoms.TrueMors;};
-			if (OutMediator == API.morsAtomType)
-				{return UpOrDown ? API.saltAtomType : ModdedAtoms.GreyMors;};
-			if (OutMediator == API.saltAtomType)
-				{return UpOrDown ?  API.vitaeAtomType : API.morsAtomType;};
-			if (OutMediator == API.vitaeAtomType)
-				{return UpOrDown ? ModdedAtoms.RedVitae : API.saltAtomType;};
-			if (OutMediator == ModdedAtoms.RedVitae)
-				{return UpOrDown ? ModdedAtoms.TrueVitae : API.vitaeAtomType;};
-			if (OutMediator == ModdedAtoms.TrueVitae)
-				{
-					if (UpOrDown) {Logger.Log("[TrueAnimismus] Tried to add vitae to already True Vitae in Herriman's Wheel. This is a bug. Report it!");};
-					return UpOrDown ? ModdedAtoms.TrueVitae : ModdedAtoms.RedVitae;
-				};
-			Logger.Log("[TrueAnimismus] Couldn't determine how to change the output-mediator in Herriman's Wheel; defaulted to salt. This is a bug. Report it!");
-			return API.saltAtomType;
-		}
+		//I don't use this method here anymore, because I made better ones, but you can see what I was thinking
+		// 
+		// AtomType DetermineHerrimanOutputResult(AtomType OutMediator, bool UpOrDown)
+		// {	
+		// 	if (OutMediator == ModdedAtoms.TrueMors)
+		// 		{
+		// 			if (!UpOrDown) {Logger.Log("[TrueAnimismus] Tried to add mors to already True Mors in Herriman's Wheel. This is a bug. Report it!");};
+		// 			return UpOrDown ? ModdedAtoms.GreyMors : ModdedAtoms.TrueMors;
+		// 		};
+		// 	if (OutMediator == ModdedAtoms.GreyMors)
+		// 		{return UpOrDown ? API.morsAtomType : ModdedAtoms.TrueMors;};
+		// 	if (OutMediator == API.morsAtomType)
+		// 		{return UpOrDown ? API.saltAtomType : ModdedAtoms.GreyMors;};
+		// 	if (OutMediator == API.saltAtomType)
+		// 		{return UpOrDown ?  API.vitaeAtomType : API.morsAtomType;};
+		// 	if (OutMediator == API.vitaeAtomType)
+		// 		{return UpOrDown ? ModdedAtoms.RedVitae : API.saltAtomType;};
+		// 	if (OutMediator == ModdedAtoms.RedVitae)
+		// 		{return UpOrDown ? ModdedAtoms.TrueVitae : API.vitaeAtomType;};
+		// 	if (OutMediator == ModdedAtoms.TrueVitae)
+		// 		{
+		// 			if (UpOrDown) {Logger.Log("[TrueAnimismus] Tried to add vitae to already True Vitae in Herriman's Wheel. This is a bug. Report it!");};
+		// 			return UpOrDown ? ModdedAtoms.TrueVitae : ModdedAtoms.RedVitae;
+		// 		};
+		// 	Logger.Log("[TrueAnimismus] Couldn't determine how to change the output-mediator in Herriman's Wheel; defaulted to salt. This is a bug. Report it!");
+		// 	return API.saltAtomType;
+		// }
 		
 		bool MediationMath(ref AtomType HerrimanOut, ref AtomType HerrimanIn, ref AtomType FreeAtom, int sign /*1 for mediating the hi side, -1 for mediating the lo side*/)
-		{
+		{	//Honestly, this should be rewritten to go through AnimeRating or something
 			bool withinBounds;
 			int mediatedHerrimanOut, mediatedHerrimanIn, freeAtomOut;
 			
@@ -233,13 +217,9 @@ public class MainClass : QuintessentialMod
 			int fInRating = API.AnimeRating(FreeAtom);
 			int VorM = (fInRating > 0) ? 1 : -1;
 
-			//Logger.Log("hOut:" + hOutRating + ", hIn: " + hInRating  + ", fIn: " + fInRating + ", VorM: " + VorM);
-
 			mediatedHerrimanOut = hOutRating + fInRating + sign*VorM;
 			mediatedHerrimanIn = hInRating - fInRating;
 			freeAtomOut = fInRating - sign*VorM;
-			
-			//Logger.Log("mhOut:" + mediatedHerrimanOut + ", mhIn: " + mediatedHerrimanIn  + ", mfOut: " + freeAtomOut);
 
 			withinBounds = 
 				mediatedHerrimanOut >= -3 &&
@@ -265,7 +245,7 @@ public class MainClass : QuintessentialMod
 			int receiverRating = API.AnimeRating(Reciever);
 			//Can't concentrate animismus with this glyph, so I don't check for exceeding true vitae or mors
 			if (!OppositionPermitted && (donorRating ^ receiverRating) > 0 || ((receiverRating >= 0 && donorRating >= 0) || (receiverRating < 0 && donorRating < 0) ? Math.Abs(receiverRating) >= Math.Abs(donorRating) : false))
-				{/*If atoms are in opposition but opposition isn't allowed, infusion fails
+				{/*If atoms are in opposition but opposition isn't allowed (i.e. receiver is not Herriman's Wheel), infusion fails
 				If donor isn't more concentrated of the same sign of animismus than the reciever, also fails*/
 				return false;
 				}
@@ -287,7 +267,7 @@ public class MainClass : QuintessentialMod
 			if (partType == GlyphAnimismus)
 			{	//Psst, there are more changes made to the Glyph of Animismus outside of this if-statement; there's also an ILHook around here somwhere
 				
-				// check if Herriman's Wheel is in place to mediate half of the glyph
+				// This code handles Herriman's Wheel being in place to mediate half of the glyph
 
 				HexIndex hexInputLeft = new HexIndex(0, 0);
 				HexIndex hexInputRight = new HexIndex(1, 0);
@@ -325,7 +305,6 @@ public class MainClass : QuintessentialMod
 					Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexInputRight).method_99(out atomInputHerrimanRight);
 				;
 
-				//Logger.Log(atomInputHerrimanLeft + " " + atomInputHerrimanLeft);
 				atomInputHerriman = atomInputHerrimanLeft ?? atomInputHerrimanRight;
 
 				bool foundMediationOutputUp =
@@ -352,22 +331,8 @@ public class MainClass : QuintessentialMod
 				{	
 					// sounds and animation for firing the glyph
 					playSound(sim_self, animismusActivate);
-					// partSimState.field_2743 = true;
-					// partSimState.field_2744[0] = foundMediationOutputDown ? API.vitaeAtomType : ModdedAtoms.Dummy;
-					// partSimState.field_2744[1] = foundMediationOutputUp ? API.morsAtomType : ModdedAtoms.Dummy;
-					// /* I don't actually know if I can just call glyphNeedstoFire() on animismus without borking something.
-					//    Using the "what atoms do I spawn?" fields as free variable real estate
-					//    without having to otherwise hack the glyph of animismus
-					//    The dummy is for the blocked iris*/
 
-
-					//TODO: Open the irises here!
-					
-					//Vector2 hexPosition = hexGraphicalOffset(part.method_1161() + hexProject.Rotated(part.method_1163()));
-					//Texture[] projectionGlyphFlashAnimation = class_238.field_1989.field_90.field_256;
-					//SEB.field_3935.Add(new class_228(SEB, (enum_7)1, hexPosition, projectionGlyphFlashAnimation, 30f, Vector2.Zero, part.method_1163().ToRadians()));
-
-					if (foundMediationOutputUp) //Ugly, need to refctor this, especially the 'UpOrDown' part in DetermineHerrimanOutputResult
+					if (foundMediationOutputUp) //Ugly, need to refactor this, especially the 'UpOrDown' part in DetermineHerrimanOutputResult
 					{	//+1 vitaeness
 					HerrimanOutputResult = API.RatingToAtom(API.AnimeRating(atomOutputHerriman.field_2280) + 1);
 					}
@@ -387,7 +352,9 @@ public class MainClass : QuintessentialMod
 					changeAtomTypeReceiverAnimation(atomOutputHerriman, HerrimanOutputResult);
 					changeAtomTypeDonorAnimation(atomInputHerriman, atomInputHerriman.field_2280); /*No actual change to the atom's identity, just makes it flash nicely*/
 					
-					glyphNeedsToFire(partSimState); //When animismus gets this signal, it will do the atom-spawning
+					glyphNeedsToFire(partSimState); //When animismus gets this signal, it will take care of the atom-spawning on its own
+					//It's hacked with an ILhook to not spawn atoms where there's a Herriman's Wheel or a Disposal Jack
+					//So it handles opening the irises et al on its own
 
 					bool blockvitae = false;
 					bool blockmors = false;
@@ -423,13 +390,17 @@ public class MainClass : QuintessentialMod
 					if (dispojack.method_1161() == hexRight.Rotated(part.method_1163()) + part.method_1161())
 					{hasdispojack = true;}
 				}
+				bool outputready = !maybeFindAtom(part, hexRight, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					|| hasdispojack;
+				//Normally you'd want to check if a Glyph's output is unblocked before letting it spawn atoms
+				//But it's okay if it's blocked if the Disposal Jack is there
 
 				if (glyphIsFiring(partSimState))
 				{
 					if(!hasdispojack){spawnAtomAtHex(part, hexRight, partSimState.field_2744[0]);} //output, or blunder your atom if there's a dispojack there
 				}
 				else if (isConsumptionHalfstep
-					&& !maybeFindAtom(part, hexRight, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					&& outputready 
 					&& maybeFindAtom(part, hexInput, gripperList).method_99(out atomToInvert) // invertible atom exists
 					&& !atomToInvert.field_2281 // a single atom
 					&& !atomToInvert.field_2282 // not held by a gripper
@@ -466,17 +437,24 @@ public class MainClass : QuintessentialMod
 					{lodispojack = true;}
 				}
 
+				bool hioutputready = !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					|| hidispojack;
+				bool looutputready = !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					|| lodispojack;
+				//Normally you'd want to check if a Glyph's output is unblocked before letting it spawn atoms
+				//But it's okay if it's blocked if the Disposal Jack is there
+
 				if (glyphIsFiring(partSimState))
 				{
-					//Herrmian's wheel mediation will pass a dummy atom into partSimState.field_2744 just to avoid breaking stuff; output everything except dummy atoms.
+					//Herriman's wheel mediation will pass a dummy atom into partSimState.field_2744 just to avoid breaking stuff; output everything except dummy atoms.
 					if (partSimState.field_2744[0] != ModdedAtoms.Dummy){spawnAtomAtHex(part, hexOutputHi, partSimState.field_2744[0]);};
 					if (partSimState.field_2744[1] != ModdedAtoms.Dummy){spawnAtomAtHex(part, hexOutputLo, partSimState.field_2744[1]);};
 				}
 				else
 				{
 					if (isConsumptionHalfstep
-						&& !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // high output not blocked; extra true means that wheels can block outputs
-						&& !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // low output not blocked; extra true means that wheels can block outputs
+						&& hioutputready 
+						&& looutputready // low output not blocked; extra true means that wheels can block outputs
 						&& maybeFindAtom(part, hexInputLeft, gripperList).method_99(out atomLeft) // left input exists
 						&& maybeFindAtom(part, hexInputRight, gripperList).method_99(out atomRight) // right input exists
 						&& atomLeft.field_2280 == atomRight.field_2280 // identical input atoms
@@ -504,7 +482,7 @@ public class MainClass : QuintessentialMod
 
 					} else if (//Now check for left mediation. hexOutputHi is on the left for this chirality.
 							isConsumptionHalfstep
-							&& !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // low output not blocked; extra true means that wheels can block outputs
+							&& looutputready // low output not blocked; extra true means that wheels can block outputs
 							// If you use glitches to make duplicate wheels, two Herriman wheels on opposite sides of the same glyph won't work. Known issue, not going to fix it. 
 							&& maybeFindAtom(part, hexInputRight, gripperList).method_99(out atomRight) // right input exists
 							&& !atomRight.field_2281 // a single atom
@@ -539,8 +517,8 @@ public class MainClass : QuintessentialMod
 							}
 					}
 					else if (//Now check for right mediation. hexOutputHi is on the left for this chirality.
-							isConsumptionHalfstep // top output not blocked; extra true means that wheels can block outputs
-							&& !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // low output not blocked; extra true means that wheels can block outputs
+							isConsumptionHalfstep 
+							&& hioutputready // output not blocked; extra true means that wheels can block outputs
 								// If you use glitches to make duplicate wheels, two Herriman wheels on opposite sides of the same glyph won't work. Known issue, not going to fix it. 
 							&& maybeFindAtom(part, hexInputLeft, gripperList).method_99(out atomLeft) // right input exists
 							&& !atomLeft.field_2281 // a single atom
@@ -598,14 +576,21 @@ public class MainClass : QuintessentialMod
 					{lodispojack = true;}
 				}
 
+				bool hioutputready = !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					|| hidispojack;
+				bool looutputready = !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // output not blocked; extra "true" means that wheels can block outputs
+					|| lodispojack;
+				//Normally you'd want to check if a Glyph's output is unblocked before letting it spawn atoms
+				//But it's okay if it's blocked if the Disposal Jack is there
+
 				if (glyphIsFiring(partSimState))
 				{
 					if (partSimState.field_2744[0] != ModdedAtoms.Dummy){spawnAtomAtHex(part, hexOutputHi, partSimState.field_2744[0]);};
 					if (partSimState.field_2744[1] != ModdedAtoms.Dummy){spawnAtomAtHex(part, hexOutputLo, partSimState.field_2744[1]);};
 				}
 				else if (isConsumptionHalfstep
-					&& !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // top output not blocked; extra true means that wheels can block outputs
-					&& !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // bottom output not blocked; extra true means that wheels can block outputs
+					&& hioutputready // top output not blocked; extra true means that wheels can block outputs
+					&& looutputready // bottom output not blocked; extra true means that wheels can block outputs
 					//Not checking this anymore due to integrated disposal feature
 					&& maybeFindAtom(part, hexInputLeft, gripperList).method_99(out atomLeft) // left input exists
 					&& maybeFindAtom(part, hexInputRight, gripperList).method_99(out atomRight) // right input exists
@@ -630,7 +615,7 @@ public class MainClass : QuintessentialMod
 				}
 				else if (//Now check for right mediation. hexOutputHi is on the right for this chirality.
 						isConsumptionHalfstep // top output not blocked; extra true means that wheels can block outputs
-						&& !maybeFindAtom(part, hexOutputLo, new List<Part>(),true).method_99(out _) // low output not blocked; extra true means that wheels can block outputs
+						&& looutputready // low output not blocked; extra true means that wheels can block outputs
 						// If you use glitches to make duplicate wheels, two Herriman wheels on opposite sides of the same glyph won't work. Known issue, not going to fix it. 
 						&& maybeFindAtom(part, hexInputLeft, gripperList).method_99(out atomLeft) // right input exists
 						&& !atomLeft.field_2281 // a single atom
@@ -662,7 +647,7 @@ public class MainClass : QuintessentialMod
 					}
 				else if (//Now check for left mediation. hexOutputHi is on the left for this chirality.
 						isConsumptionHalfstep // top output not blocked; extra true means that wheels can block outputs
-						&& !maybeFindAtom(part, hexOutputHi, new List<Part>(),true).method_99(out _) // low output not blocked; extra true means that wheels can block outputs
+						&& hioutputready // low output not blocked; extra true means that wheels can block outputs
 							// If you use glitches to make duplicate wheels, two Herriman wheels on opposite sides of the same glyph won't work. Known issue, not going to fix it. 
 						&& maybeFindAtom(part, hexInputRight, gripperList).method_99(out atomRight) // right input exists
 						&& !atomRight.field_2281 // a single atom
@@ -772,6 +757,8 @@ public class MainClass : QuintessentialMod
 
 	public override void Unload(){
 		caowhook?.Dispose();
+		Glyphs.dispodrawhook?.Dispose();
+		//Glyphs.dontdrawhook?.Dispose();
 	}
 
 	public override void PostLoad()
@@ -816,11 +803,6 @@ public class MainClass : QuintessentialMod
 		string errorMessage;
 		bool ret = orig(solution_self, part, hex1, hex2, rot, out errorMessage);
 
-		// if (errorMessage == errStr("There is already another part here."))
-		// {
-		// 	Logger.Log(part.method_1159().field_1529);
-		// }
-
 		if (errorMessage == errStr("There is already another part here.") && (part.method_1159() == Glyphs.DispoJack))
 		{
 			//Go check if the Dispojack is being held over a compatible iris.
@@ -843,8 +825,6 @@ public class MainClass : QuintessentialMod
 		return ret;
 	}
 
-	// WIP WIP WIP
-
 	private static ILHook caowhook;
 	public static void AnimismusFiringHook()
 	{
@@ -860,6 +840,8 @@ public class MainClass : QuintessentialMod
 	var gremlin = new ILCursor(il);
 	// Send code-modifying gremlin to roughly where the glyph of animismus's native code is
 	// not specifying an exact instruction number because that apparently changes if some other mod roots around in method_1832
+	// The plan is that when it's firing, make it not output an atom where there's a Disposal Jack or Herriman's Wheel,
+	// And handle the partial atom colliders similarly.
 
 	gremlin.Goto(600);
 
@@ -874,28 +856,25 @@ public class MainClass : QuintessentialMod
 		))
 
 		//We're at the spot where a partial atom collider emerges from an iris of the glyph of animismus
-		//Don't do this if there's a disposal jack over that iris, pls
+		//Don't do that if there's a disposal jack over that iris
 
 		//Remove the "spawn atom collider" code 
 		gremlin.RemoveRange(15);
 		//Grab the current Sim so we can reference anything on the board we want by hitting it with methods until the info falls out
-		//Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
 		gremlin.Emit(OpCodes.Ldarg_0);
 		//Grab local variable #6; it's a class that's keeping track of which glyph we're messing with
 		//If you want to mess with the deets of any other vanilla glyph, you will probably end up in orig_method_1832 and grabbing local variable #6, too
-		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)6);
 
 		//Grab the index of the for{} loop this code is in; I need it to know which iris we're talking about. j == 0 means vitae, j == 1 means mors
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)32);
-		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 32);");
 
 		//I don't actually need to do this inside the for-loop, but there are these things called IL labels and
 		//I don't
 		//want to tear out a for-loop
 		//because the label-fixer part of Monomod will yell at me for that
 		//so we're taking the performance L of doing this code twice until I figure it out
-		//(Which is why I asked an LLM to clean up this bit for some performance, too)
+		//(Which is why I asked an LLM to clean up this next bit for some performance, too)
 
 		//And now we can check if there's a dispojack before Doing The Thing
 
@@ -948,28 +927,27 @@ public class MainClass : QuintessentialMod
 	x => x.MatchLdsfld(out _)
 		))
 
-		//Skip over the first line of the "spawn vitae and mors" code because it has an IL label attached and OM crashes if you remove those.
-		//The skipped line gets to execute normally, but it just declares the existence of a molecule object and loads it into a new variable.
-		//If that new molecule doesn't get loaded with an atom or added to the molecule list or anything, there's no consequence to ignoring it.
+		//Let the first line of the "spawn vitae and mors" code go through because it has an IL label attached.
+		//Programs crash if you remove those.
+		//The line gets to execute normally, but it just declares the existence of a molecule object and loads it into a new variable.
+		//If that new object doesn't get loaded with an atom or added to the molecule list or anything, there's no consequence to ignoring it
+		//It will just go away when we leave the method's scope
 
-		gremlin.GotoNext(); //new molecule object
-		gremlin.GotoNext(); //loaded into a new variable, which we proceed to ignore
+		gremlin.GotoNext();
+		gremlin.GotoNext();
 
 		//Remove the rest of the "spawn vitae and mors" code 
 		gremlin.RemoveRange(30);
 		//Grab the current Sim so we can reference anything on the board we want by hitting it with methods until the info falls out
-		//Logger.Log("gremlin.Emit(OpCodes.Ldarg_0)");
 		gremlin.Emit(OpCodes.Ldarg_0);
 		//Grab local variable #6; it's a class that's keeping track of which glyph we're messing with
 		//If you want to mess with the deets of any other vanilla glyph, you will probably end up in orig_method_1832 and grabbing local variable #6, too
-		//Logger.Log("gremlin.Emit(OpCodes.Ldloc_S, 6);");
 		gremlin.Emit(OpCodes.Ldloc_S, (byte)6);
 		//Use them to do this
 		//Logger.Log("gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => ");
 		gremlin.EmitDelegate<Action<Sim, Sim.class_402>>((sim_self,tracker) => 
 			{	
 				Part part = tracker.field_3841;
-				//Logger.Log(part.method_1159());
 				SolutionEditorBase SEB = sim_self.field_3818;
 
 				bool blockvitae = false;
@@ -979,9 +957,6 @@ public class MainClass : QuintessentialMod
 
 				foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
 				{
-					// Logger.Log(dispojack.method_1161());
-					// Logger.Log(hexOutputHi.Rotated(part.method_1163()) + part.method_1161());
-					// Logger.Log(hexOutputLo.Rotated(part.method_1163()) + part.method_1161());
 					if (dispojack.method_1161() == hexOutputHi.Rotated(part.method_1163()) + part.method_1161())
 					{blockvitae = true;}
 					if (dispojack.method_1161() == hexOutputLo.Rotated(part.method_1163()) + part.method_1161())

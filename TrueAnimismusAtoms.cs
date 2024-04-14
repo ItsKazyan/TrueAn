@@ -97,7 +97,7 @@ public static AtomType RedVitae, TrueVitae, GreyMors, TrueMors, Dummy;
 
 		Dummy = new AtomType()
 		{
-			/*ID, byte*/field_2283 = 87, //I just like 83
+			/*ID, byte*/field_2283 = 87,
 			/*Non-local Name*/field_2284 = class_134.method_254("Dummy Atom"),
 			/*Atomic Name*/field_2285 = class_134.method_253("Elemental Dummy Atom", string.Empty),
 			/*Local name*/field_2286 = class_134.method_253("Dummy Atom", string.Empty),
