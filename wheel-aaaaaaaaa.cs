@@ -96,6 +96,31 @@ public static class Wheel
         return (Maybe<AtomReference>)struct_18.field_1431;
     }
 
+    public static Maybe<AtomReference> maybeFindHerrimanWheelAtomSEB(Sim sim_self, Part part, HexIndex offset)
+    {
+        var SEB = sim_self.field_3818;
+        var solution = SEB.method_502();
+        var partList = solution.field_3919;
+        var partSimStates = sim_self.field_3821;
+
+        HexIndex key = part.method_1184(offset);
+        foreach (var Herriman in partList.Where(x => x.method_1159() == Herriman))
+        {
+            var partSimState = partSimStates[Herriman];
+            Molecule HerrimanAtoms = GetHerrimanWheelAtoms(partSimState);
+            var hexIndex = partSimState.field_2724;
+            var rotation = partSimState.field_2726;
+            var hexKey = (key - hexIndex).Rotated(rotation.Negative());
+
+            Atom atom;
+            if (HerrimanAtoms.method_1100().TryGetValue(hexKey, out atom))
+            {
+                return (Maybe<AtomReference>)new AtomReference(HerrimanAtoms, hexKey, atom.field_2275, atom, true);
+            }
+        }
+        return (Maybe<AtomReference>)struct_18.field_1431;
+    }
+
     private static bool ContentLoaded = false;
     public static void LoadContent()
     {

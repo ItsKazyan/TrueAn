@@ -322,8 +322,9 @@ public class MainClass : QuintessentialMod
                 bool DownBlocked = maybeFindAtom(part, hexOutputDown, new List<Part>(), true).method_99(out _);
 
                 bool MediationPossible = /*big ugly conditional to check for a bunch of stuff; blocked output, salt, wheel in right place, etc*/
-                    (foundMediationInputLeft && foundSaltInputRight && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))) ||
-                    (foundMediationInputRight && foundSaltInputLeft && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked)))
+                    ((foundMediationInputLeft && foundSaltInputRight && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))) ||
+                    (foundMediationInputRight && foundSaltInputLeft && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))))
+                    && isConsumptionHalfstep
                 ;
 
 
@@ -369,6 +370,10 @@ public class MainClass : QuintessentialMod
                     //Spawn the half-sized colliders that atoms have when emerging from outputs, skipping if there's a disposal jack involved
                     if (foundMediationOutputDown && !blockvitae) { addColliderAtHex(part, hexOutputUp); }
                     if (foundMediationOutputUp && !blockmors) { addColliderAtHex(part, hexOutputDown); }
+
+                    partSimState.field_2744 = new AtomType[2];
+                    partSimState.field_2744[0] = (UpBlocked || blockvitae) ? ModdedAtoms.Dummy : API.vitaeAtomType;
+                    partSimState.field_2744[1] = (DownBlocked || blockmors) ? ModdedAtoms.Dummy : API.morsAtomType;
 
 
                     //Glyphs.drawAtomIO(/*PartRenderer, somewhere???*/, partSimState.field_2744[0], foundMediationOutputDown ? hexOutputUp : hexOutputDown, SEB.method_504());
@@ -892,21 +897,14 @@ public class MainClass : QuintessentialMod
             {
                 Part part = tracker.field_3841;
                 SolutionEditorBase SEB = sim_self.field_3818;
-
-                bool blockvitae = false;
-                bool blockmors = false;
+                var partSimStates = sim_self.field_3821;
+                PartSimState partSimState = partSimStates[part];
+                //Logger.Log(partSimState.field_2744[0]);
+                //Logger.Log(partSimState.field_2744[1]);
                 HexIndex hexOutputHiTransformed = new HexIndex(0, 1).Rotated(part.method_1163()) + part.method_1161();
                 HexIndex hexOutputLoTransformed = new HexIndex(1, -1).Rotated(part.method_1163()) + part.method_1161();
 
-                foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
-                {
-                    if (dispojack.method_1161() == hexOutputHiTransformed)
-                        blockvitae = true;
-                    if (dispojack.method_1161() == hexOutputLoTransformed)
-                        blockmors = true;
-                }
-
-                if (!blockvitae && j == 0) // Make the vitae collider, maybe
+                if (partSimState.field_2744[0] == API.vitaeAtomType && j == 0) // Make the vitae collider, maybe
                 {
                     sim_self.field_3826.Add(new Sim.struct_122()
                     {
@@ -915,7 +913,7 @@ public class MainClass : QuintessentialMod
                         field_3852 = 15f // Sim.field_3832;
                     });
                 }
-                if (!blockmors && j == 1) // Make the mors collider, maybe
+                if (partSimState.field_2744[1] == API.morsAtomType && j == 1) // Make the mors collider, maybe
                 {
                     sim_self.field_3826.Add(new Sim.struct_122()
                     {
@@ -959,31 +957,19 @@ public class MainClass : QuintessentialMod
             {
                 Part part = tracker.field_3841;
                 SolutionEditorBase SEB = sim_self.field_3818;
-
-                bool blockvitae = false;
-                bool blockmors = false;
-                HexIndex hexOutputHi = new HexIndex(0, 1);
-                HexIndex hexOutputLo = new HexIndex(1, -1);
-
-                foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
-                {
-                    if (dispojack.method_1161() == hexOutputHi.Rotated(part.method_1163()) + part.method_1161())
-                    { blockvitae = true; }
-                    if (dispojack.method_1161() == hexOutputLo.Rotated(part.method_1163()) + part.method_1161())
-                    { blockmors = true; }
-                }
-
-                if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputHi).method_99(out _)) { blockvitae = true; }
-                if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputLo).method_99(out _)) { blockmors = true; }
+                var partSimStates = sim_self.field_3821;
+                PartSimState partSimState = partSimStates[part];
+                //Logger.Log(partSimState.field_2744[0]);
+                //Logger.Log(partSimState.field_2744[1]);
 
                 // Recreation of the vite and mors spawning code
-                if (!blockvitae)
+                if (partSimState.field_2744[0] == API.vitaeAtomType)
                 {
                     Molecule vitmolecule = new Molecule();
                     vitmolecule.method_1105(new Atom(API.vitaeAtomType), part.method_1184(new HexIndex(0, 1)));
                     sim_self.field_3823.Add(vitmolecule);
                 }
-                if (!blockmors)
+                if (partSimState.field_2744[1] == API.morsAtomType)
                 {
                     Molecule morsmolecule = new Molecule();
                     morsmolecule.method_1105(new Atom(API.morsAtomType), part.method_1184(new HexIndex(1, -1)));

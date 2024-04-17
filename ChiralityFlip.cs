@@ -103,9 +103,9 @@ public static class ChiralityFlip
                     field_2207 = draggedPart.field_2207,
                 };
                 ChiralityFlippedParts.Add(ChiralityFlippedPart);
+                interfaceDyn.Set("field_2712", ChiralityFlippedParts);
             }
         }
-        interfaceDyn.Set("field_2712", ChiralityFlippedParts);
         MainClass.playSoundWithVolume(class_238.field_1991.field_1877, 0.2f);  // 'sounds/ui_transition_back'
     }
 }

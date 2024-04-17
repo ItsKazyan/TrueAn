@@ -529,13 +529,13 @@ public static class Glyphs
                 drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
                 if (partSimState.field_2743 && !flag)
                 {
-                    if (!hasdispojack) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
+                    if (!hasdispojack && partSimState.field_2744[0] != ModdedAtoms.Dummy) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
                 }
                 drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
                 drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
                 if (flag)
                 {
-                    if (!hasdispojack) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
+                    if (!hasdispojack && partSimState.field_2744[0] != ModdedAtoms.Dummy) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
                 }
             }
 
@@ -656,13 +656,13 @@ public static class Glyphs
             //I will eventually figure out how to skip the atom shadows for the Glyph of Animismus too
             drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
             drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-            if (partSimState.field_2743 && !flag && drawshadow)
+            if (partSimState.field_2743 && !flag && drawshadow && partSimState.field_2744[i] != ModdedAtoms.Dummy)
             {
                 drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
             }
             drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
             drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-            if (flag && drawshadow)
+            if (flag && drawshadow && partSimState.field_2744[i] != ModdedAtoms.Dummy)
             {
                 drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
             }

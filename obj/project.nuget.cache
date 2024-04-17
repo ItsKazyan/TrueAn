@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "c+zaMrXoRUaGWihJHHcf9z89fqfz5GPaB+T3ZPY280DC7/fHysy9GTXvj2c8Tg0itmdapIWm+DdCg5tW6eXd7g==",
+  "success": true,
+  "projectFilePath": "/home/hannah/Downloads/OM-modding-my-attempts/Container/ContainerFolder/TrueAn/TrueAn.csproj",
+  "expectedPackageFiles": [
+    "/home/hannah/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.2/microsoft.netframework.referenceassemblies.1.0.2.nupkg.sha512",
+    "/home/hannah/.nuget/packages/microsoft.netframework.referenceassemblies.net452/1.0.2/microsoft.netframework.referenceassemblies.net452.1.0.2.nupkg.sha512",
+    "/home/hannah/.nuget/packages/system.net.http/4.3.4/system.net.http.4.3.4.nupkg.sha512"
+  ],
+  "logs": []
+}
