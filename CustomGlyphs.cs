@@ -323,6 +323,14 @@ public static class Glyphs
         API.addLeftHandRule(ModdedAtoms.GreyMors, ModdedAtoms.RedVitae);
         API.addLeftHandRule(ModdedAtoms.TrueMors, ModdedAtoms.TrueVitae);
         API.addLeftHandRule(API.saltAtomType, API.saltAtomType); //0 x -1 = 0
+
+        API.AtomsForRating.Add(new(ModdedAtoms.TrueVitae, 3, "animismus"));
+        API.AtomsForRating.Add(new(ModdedAtoms.RedVitae, 2, "animismus"));
+        API.AtomsForRating.Add(new(API.vitaeAtomType, 1, "animismus"));
+        API.AtomsForRating.Add(new(API.saltAtomType, 0, "animismus"));
+        API.AtomsForRating.Add(new(API.morsAtomType, -1, "animismus"));
+        API.AtomsForRating.Add(new(ModdedAtoms.GreyMors, -2, "animismus"));
+        API.AtomsForRating.Add(new(ModdedAtoms.TrueMors, -3, "animismus"));
         Logger.Log("Adding Glyph Rules for the higher grades of animismus!");
 
         LoadAllCustomSounds();
@@ -529,13 +537,13 @@ public static class Glyphs
                 drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
                 if (partSimState.field_2743 && !flag)
                 {
-                    if (!hasdispojack && partSimState.field_2744[0] != ModdedAtoms.Dummy) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
+                    if (!hasdispojack) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
                 }
                 drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
                 drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
                 if (flag)
                 {
-                    if (!hasdispojack && partSimState.field_2744[0] != ModdedAtoms.Dummy) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
+                    if (!hasdispojack) { drawAtomIO(renderer, partSimState.field_2744[0], hex, num); }
                 }
             }
 
@@ -656,13 +664,13 @@ public static class Glyphs
             //I will eventually figure out how to skip the atom shadows for the Glyph of Animismus too
             drawPartGraphic(renderer, bonderShadow, textureCenter(bonderShadow), 0f, hexGraphicalOffset(hex), new Vector2(0f, -3f));
             drawPartGraphicSpecular(renderer, animismus_outputUnderIris, textureCenter(animismus_outputUnderIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-            if (partSimState.field_2743 && !flag && drawshadow && partSimState.field_2744[i] != ModdedAtoms.Dummy)
+            if (partSimState.field_2743 && !flag && drawshadow)
             {
                 drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
             }
             drawPartGraphic(renderer, irisFullArray[index], textureCenter(irisFullArray[index]), -partAngle, hexGraphicalOffset(hex), Vector2.Zero);
             drawPartGraphicSpecular(renderer, animismus_outputAboveIris, textureCenter(animismus_outputAboveIris), 0f, hexGraphicalOffset(hex), Vector2.Zero);
-            if (flag && drawshadow && partSimState.field_2744[i] != ModdedAtoms.Dummy)
+            if (flag && drawshadow)
             {
                 drawAtomIO(renderer, partSimState.field_2744[i], hex, num);
             }

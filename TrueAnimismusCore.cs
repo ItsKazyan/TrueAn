@@ -5,22 +5,24 @@ using MonoMod.Utils;
 using Quintessential;
 using Quintessential.Settings;
 using System;
-using System.Linq;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Management.Instrumentation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Collections;
 using System.Security.Cryptography;
-using System.CodeDom;
+using YamlDotNet.Core.Tokens;
 
 namespace TrueAnimismus;
 
-using PartType = class_139;
-using Permissions = enum_149;
-using BondType = enum_126;
-using BondSite = class_222;
 using AtomTypes = class_175;
+using BondSite = class_222;
+using BondType = enum_126;
+using PartType = class_139;
 using PartTypes = class_191;
+using Permissions = enum_149;
 using Texture = class_256;
 public class MainClass : QuintessentialMod
 {
@@ -209,13 +211,14 @@ public class MainClass : QuintessentialMod
         // }
 
         bool MediationMath(ref AtomType HerrimanOut, ref AtomType HerrimanIn, ref AtomType FreeAtom, int sign /*1 for mediating the hi side, -1 for mediating the lo side*/)
-        {   //Honestly, this should be rewritten to go through AnimeRating or something
+        {   //Honestly, this should be rewritten to go through Anime
+            //or something
             bool withinBounds;
             int mediatedHerrimanOut, mediatedHerrimanIn, freeAtomOut;
 
-            int hOutRating = API.AnimeRating(HerrimanOut);
-            int hInRating = API.AnimeRating(HerrimanIn);
-            int fInRating = API.AnimeRating(FreeAtom);
+            int hOutRating = API.AnimeRating(HerrimanOut, out string tagout).Value;
+            int hInRating = API.AnimeRating(HerrimanIn, out string tagin).Value;
+            int fInRating = API.AnimeRating(FreeAtom, out string tagfree).Value;
             int VorM = (fInRating > 0) ? 1 : -1;
 
             mediatedHerrimanOut = hOutRating + fInRating + sign * VorM;
@@ -233,17 +236,17 @@ public class MainClass : QuintessentialMod
             if (!withinBounds) { return false; }
             else
             {
-                HerrimanOut = API.RatingToAtom(mediatedHerrimanOut);
-                HerrimanIn = API.RatingToAtom(mediatedHerrimanIn);
-                FreeAtom = API.RatingToAtom(freeAtomOut);
+                HerrimanOut = API.RatingToAtom(mediatedHerrimanOut, tagout);
+                HerrimanIn = API.RatingToAtom(mediatedHerrimanIn, tagin);
+                FreeAtom = API.RatingToAtom(freeAtomOut, tagfree);
                 return true;
             }
         }
 
         bool InfusionMath(ref AtomType Donor, ref AtomType Reciever, bool OppositionPermitted)
         {
-            int donorRating = API.AnimeRating(Donor);
-            int receiverRating = API.AnimeRating(Reciever);
+            int donorRating = API.AnimeRating(Donor, out string tagdonor).Value;
+            int receiverRating = API.AnimeRating(Reciever, out string tagreceiver).Value;
             //Can't concentrate animismus with this glyph, so I don't check for exceeding true vitae or mors
             if (!OppositionPermitted && (donorRating ^ receiverRating) > 0 || ((receiverRating >= 0 && donorRating >= 0) || (receiverRating < 0 && donorRating < 0) ? Math.Abs(receiverRating) >= Math.Abs(donorRating) : false))
             {/*If atoms are in opposition but opposition isn't allowed (i.e. receiver is not Herriman's Wheel), infusion fails
@@ -253,8 +256,8 @@ public class MainClass : QuintessentialMod
             int VorM = (donorRating > 0) ? 1 : -1;
             donorRating -= VorM;
             receiverRating += VorM;
-            Donor = API.RatingToAtom(donorRating);
-            Reciever = API.RatingToAtom(receiverRating);
+            Donor = API.RatingToAtom(donorRating, tagdonor);
+            Reciever = API.RatingToAtom(receiverRating, tagreceiver);
             return true;
         }
 
@@ -322,9 +325,8 @@ public class MainClass : QuintessentialMod
                 bool DownBlocked = maybeFindAtom(part, hexOutputDown, new List<Part>(), true).method_99(out _);
 
                 bool MediationPossible = /*big ugly conditional to check for a bunch of stuff; blocked output, salt, wheel in right place, etc*/
-                    ((foundMediationInputLeft && foundSaltInputRight && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))) ||
-                    (foundMediationInputRight && foundSaltInputLeft && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))))
-                    && isConsumptionHalfstep
+                    (foundMediationInputLeft && foundSaltInputRight && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked))) ||
+                    (foundMediationInputRight && foundSaltInputLeft && ((foundMediationOutputUp && !DownBlocked) || (foundMediationOutputDown && !UpBlocked)))
                 ;
 
 
@@ -336,11 +338,11 @@ public class MainClass : QuintessentialMod
 
                     if (foundMediationOutputUp) //Ugly, need to refactor this, especially the 'UpOrDown' part in DetermineHerrimanOutputResult
                     {   //+1 vitaeness
-                        HerrimanOutputResult = API.RatingToAtom(API.AnimeRating(atomOutputHerriman.field_2280) + 1);
+                        HerrimanOutputResult = API.RatingToAtom(API.AnimeRating(atomOutputHerriman.field_2280, out string tag).Value + 1, tag);
                     }
                     else
                     {   //+1 morsosity
-                        HerrimanOutputResult = API.RatingToAtom(API.AnimeRating(atomOutputHerriman.field_2280) - 1);
+                        HerrimanOutputResult = API.RatingToAtom(API.AnimeRating(atomOutputHerriman.field_2280, out string tag).Value - 1, tag);
                     }
                     // eat salt
                     consumeAtomReference(atomSaltToConsume);
@@ -370,10 +372,6 @@ public class MainClass : QuintessentialMod
                     //Spawn the half-sized colliders that atoms have when emerging from outputs, skipping if there's a disposal jack involved
                     if (foundMediationOutputDown && !blockvitae) { addColliderAtHex(part, hexOutputUp); }
                     if (foundMediationOutputUp && !blockmors) { addColliderAtHex(part, hexOutputDown); }
-
-                    partSimState.field_2744 = new AtomType[2];
-                    partSimState.field_2744[0] = (UpBlocked || blockvitae) ? ModdedAtoms.Dummy : API.vitaeAtomType;
-                    partSimState.field_2744[1] = (DownBlocked || blockmors) ? ModdedAtoms.Dummy : API.morsAtomType;
 
 
                     //Glyphs.drawAtomIO(/*PartRenderer, somewhere???*/, partSimState.field_2744[0], foundMediationOutputDown ? hexOutputUp : hexOutputDown, SEB.method_504());
@@ -707,16 +705,13 @@ public class MainClass : QuintessentialMod
                                                                                                                 //Don't need to check for grippers or single atoms or anything here; infusion works even on held molecules
                 )
                 {
-                    if (
-                    /*do infusion if left atom is actually animismus; we skip salt because it can't infuse anything*/
-                    atomLeft.field_2280 == ModdedAtoms.TrueMors ||
-                    atomLeft.field_2280 == ModdedAtoms.GreyMors ||
-                    atomLeft.field_2280 == API.morsAtomType ||
-                    atomLeft.field_2280 == API.vitaeAtomType ||
-                    atomLeft.field_2280 == ModdedAtoms.RedVitae ||
-                    atomLeft.field_2280 == ModdedAtoms.TrueVitae)
+                    int? L = API.AnimeRating(atomLeft.field_2280, out _);
+
+                    if (L.HasValue && L.Value != 0) /*do infusion if left atom is actually animismus; we skip 0-charged atoms because they can't infuse anything*/
                     {
-                        AtomType transleft = atomLeft.field_2280, transright = atomRight.field_2280;
+                        AtomType transleft = atomLeft.field_2280;
+                        AtomType transright = atomRight.field_2280;
+
                         if (InfusionMath(ref transleft, ref transright, true)) // opposition is permitted since the wheel is receiving
                         {
                             changeAtomTypeDonorAnimation(atomLeft, transleft);
@@ -739,22 +734,27 @@ public class MainClass : QuintessentialMod
                 {
                     AtomType transleft = default, transright = default;
                     bool DoInfusion = false;
-                    // Don't code like this. Use a dict or something instead. Hardcode to account for opposition and "are these atoms actually animismus?"
-
-                    if (atomLeft.field_2280 == API.vitaeAtomType && atomRight.field_2280 == API.saltAtomType) { transleft = API.saltAtomType; transright = API.vitaeAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.RedVitae && atomRight.field_2280 == API.saltAtomType) { transleft = API.vitaeAtomType; transright = API.vitaeAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.RedVitae && atomRight.field_2280 == API.vitaeAtomType) { transleft = API.vitaeAtomType; transright = ModdedAtoms.RedVitae; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueVitae && atomRight.field_2280 == API.saltAtomType) { transleft = ModdedAtoms.RedVitae; transright = API.vitaeAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueVitae && atomRight.field_2280 == API.vitaeAtomType) { transleft = ModdedAtoms.RedVitae; transright = ModdedAtoms.RedVitae; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueVitae && atomRight.field_2280 == ModdedAtoms.RedVitae) { transleft = ModdedAtoms.RedVitae; transright = ModdedAtoms.TrueVitae; DoInfusion = true; }
-
-                    if (atomLeft.field_2280 == API.morsAtomType && atomRight.field_2280 == API.saltAtomType) { transleft = API.saltAtomType; transright = API.morsAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.GreyMors && atomRight.field_2280 == API.saltAtomType) { transleft = API.morsAtomType; transright = API.morsAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.GreyMors && atomRight.field_2280 == API.morsAtomType) { transleft = API.morsAtomType; transright = ModdedAtoms.GreyMors; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueMors && atomRight.field_2280 == API.saltAtomType) { transleft = ModdedAtoms.GreyMors; transright = API.morsAtomType; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueMors && atomRight.field_2280 == API.morsAtomType) { transleft = ModdedAtoms.GreyMors; transright = ModdedAtoms.GreyMors; DoInfusion = true; }
-                    if (atomLeft.field_2280 == ModdedAtoms.TrueMors && atomRight.field_2280 == ModdedAtoms.GreyMors) { transleft = ModdedAtoms.GreyMors; transright = ModdedAtoms.TrueMors; DoInfusion = true; }
-
+                    int? L = API.AnimeRating(atomLeft.field_2280, out string tagleft);
+                    int? R = API.AnimeRating(atomRight.field_2280, out string tagright);
+                    if (L.HasValue && R.HasValue)
+                    {
+                        // enforce opposition rule
+                        if ((L.Value > 0 && R.Value < 0) || (L.Value < 0 && R.Value > 0))
+                        {
+                            return;
+                        }
+                        if (Math.Abs(L.Value) > Math.Abs(R.Value))
+                        {
+                            AtomType testleft = API.RatingToAtom(L.Value - Math.Sign(L.Value), tagleft);
+                            AtomType testright = API.RatingToAtom(R.Value + Math.Sign(L.Value), tagright);
+                            if (!EqualityComparer<AtomType>.Default.Equals(testleft, default) && !EqualityComparer<AtomType>.Default.Equals(testright, default))
+                            {
+                                transleft = testleft;
+                                transright = testright;
+                                DoInfusion = true;
+                            }
+                        }
+                    }
                     if (DoInfusion) // If the two atoms are valid for an infusion to happen...
                     {
                         changeAtomTypeDonorAnimation(atomLeft, transleft);
@@ -897,14 +897,21 @@ public class MainClass : QuintessentialMod
             {
                 Part part = tracker.field_3841;
                 SolutionEditorBase SEB = sim_self.field_3818;
-                var partSimStates = sim_self.field_3821;
-                PartSimState partSimState = partSimStates[part];
-                //Logger.Log(partSimState.field_2744[0]);
-                //Logger.Log(partSimState.field_2744[1]);
+
+                bool blockvitae = false;
+                bool blockmors = false;
                 HexIndex hexOutputHiTransformed = new HexIndex(0, 1).Rotated(part.method_1163()) + part.method_1161();
                 HexIndex hexOutputLoTransformed = new HexIndex(1, -1).Rotated(part.method_1163()) + part.method_1161();
 
-                if (partSimState.field_2744[0] == API.vitaeAtomType && j == 0) // Make the vitae collider, maybe
+                foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+                {
+                    if (dispojack.method_1161() == hexOutputHiTransformed)
+                        blockvitae = true;
+                    if (dispojack.method_1161() == hexOutputLoTransformed)
+                        blockmors = true;
+                }
+
+                if (!blockvitae && j == 0) // Make the vitae collider, maybe
                 {
                     sim_self.field_3826.Add(new Sim.struct_122()
                     {
@@ -913,7 +920,7 @@ public class MainClass : QuintessentialMod
                         field_3852 = 15f // Sim.field_3832;
                     });
                 }
-                if (partSimState.field_2744[1] == API.morsAtomType && j == 1) // Make the mors collider, maybe
+                if (!blockmors && j == 1) // Make the mors collider, maybe
                 {
                     sim_self.field_3826.Add(new Sim.struct_122()
                     {
@@ -957,19 +964,31 @@ public class MainClass : QuintessentialMod
             {
                 Part part = tracker.field_3841;
                 SolutionEditorBase SEB = sim_self.field_3818;
-                var partSimStates = sim_self.field_3821;
-                PartSimState partSimState = partSimStates[part];
-                //Logger.Log(partSimState.field_2744[0]);
-                //Logger.Log(partSimState.field_2744[1]);
+
+                bool blockvitae = false;
+                bool blockmors = false;
+                HexIndex hexOutputHi = new HexIndex(0, 1);
+                HexIndex hexOutputLo = new HexIndex(1, -1);
+
+                foreach (Part dispojack in SEB.method_502().field_3919.Where(x => x.method_1159() == Glyphs.DispoJack))
+                {
+                    if (dispojack.method_1161() == hexOutputHi.Rotated(part.method_1163()) + part.method_1161())
+                    { blockvitae = true; }
+                    if (dispojack.method_1161() == hexOutputLo.Rotated(part.method_1163()) + part.method_1161())
+                    { blockmors = true; }
+                }
+
+                if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputHi).method_99(out _)) { blockvitae = true; }
+                if (Wheel.maybeFindHerrimanWheelAtom(sim_self, part, hexOutputLo).method_99(out _)) { blockmors = true; }
 
                 // Recreation of the vite and mors spawning code
-                if (partSimState.field_2744[0] == API.vitaeAtomType)
+                if (!blockvitae)
                 {
                     Molecule vitmolecule = new Molecule();
                     vitmolecule.method_1105(new Atom(API.vitaeAtomType), part.method_1184(new HexIndex(0, 1)));
                     sim_self.field_3823.Add(vitmolecule);
                 }
-                if (partSimState.field_2744[1] == API.morsAtomType)
+                if (!blockmors)
                 {
                     Molecule morsmolecule = new Molecule();
                     morsmolecule.method_1105(new Atom(API.morsAtomType), part.method_1184(new HexIndex(1, -1)));

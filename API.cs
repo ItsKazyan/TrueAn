@@ -36,36 +36,59 @@ public static class API
     #endregion
 
     #region ruleDictionaries and methods
+
+    //Disproportion Dictionary
     private static Dictionary<AtomType, Pair<AtomType, AtomType>> disproportionDict = new();
+
+    //Left Hand Dictionary
     private static Dictionary<AtomType, AtomType> lefthandDict = new();
 
-    public static int AnimeRating(AtomType atomToBeRated)
-    {   // real programmers use dicts for this; don't be like me
-        if (atomToBeRated == ModdedAtoms.TrueVitae) { return 3; }
-        if (atomToBeRated == ModdedAtoms.RedVitae) { return 2; }
-        if (atomToBeRated == vitaeAtomType) { return 1; }
-        if (atomToBeRated == saltAtomType) { return 0; }
-        if (atomToBeRated == morsAtomType) { return -1; }
-        if (atomToBeRated == ModdedAtoms.GreyMors) { return -2; }
-        if (atomToBeRated == ModdedAtoms.TrueMors) { return -3; }
-        //None of those triggered? Then:
-        Logger.Log("Tried to get the animismus rating of a non-animismus atom; this is a bug. Treating it as salt.");
+    //Struct of atom for the rating system.
+    public struct RegisteredAtom
+    {
+        public RegisteredAtom(AtomType atomtype, int rating, string tag)
+        {
+            // The AtomType of the rating atom.
+            this.atomtype = atomtype;
+            // The Charge of the rating atom.
+            this.rating = rating;
+            // A tag, to differentiate shared ratings. (i.e. Animismus -3 to 3 is a separate scale from a different set of animismus-adjacent atoms that also scale from -3 to 3.)
+            this.tag = tag;
+        }
+        public AtomType atomtype;
+        public int rating;
+        public string tag;
+    }
+    public static List<RegisteredAtom> AtomsForRating = new();
+
+
+    public static int? AnimeRating(AtomType atomToBeRated, out string tag)
+    {
+        foreach (API.RegisteredAtom check in API.AtomsForRating)
+        {
+            if ((check.atomtype == atomToBeRated))
+            {
+                tag = check.tag;
+                return check.rating;
+            }
+        }
+        // Invalid results are a normal case now, as the rating check can happen on any atom.
+        tag = null;
         return 0;
     }
 
-    public static AtomType RatingToAtom(int an)
+    public static AtomType RatingToAtom(int an, string tag)
     {
-        switch (an)
+        //Check every registered rating for a matching rating and tag
+        foreach (API.RegisteredAtom check in API.AtomsForRating)
         {
-            case 3: return ModdedAtoms.TrueVitae;
-            case 2: return ModdedAtoms.RedVitae;
-            case 1: return vitaeAtomType;
-            case 0: return saltAtomType;
-            case -1: return morsAtomType;
-            case -2: return ModdedAtoms.GreyMors;
-            case -3: return ModdedAtoms.TrueMors;
-            default: { Logger.Log("Tried to determine animismus atom from an invalid 'ranking' not from -3 to 3; this is a bug. Treating it as salt."); return saltAtomType; }
+            if ((check.rating == an) && (check.tag == tag))
+            {
+                return check.atomtype;
+            }
         }
+        // Invalid results are a normal case now, as the rating check can happen on any atom.
+        return null;
     }
 
     public static bool applyLeftHandRule(AtomType input, out AtomType output) => applyTRule(input, lefthandDict, out output);
@@ -77,25 +100,9 @@ public static class API
         outputLo = ret ? output.Right : default(AtomType);
         return ret;
     }
-    // 	public static bool applyInfusionRule(AtomType inputHi, AtomType inputLo, out AtomType outputHi, out AtomType outputLo)
-    // {
-    //     Pair<AtomType, AtomType> inputPair = new Pair<AtomType, AtomType>(inputHi, inputLo);
-    //     Pair<AtomType, AtomType> output;
-
-    //     bool ret = applyTRule(inputPair, infusionDict, out output);
-    //     outputHi = ret ? output.Left : default(AtomType);
-    //     outputLo = ret ? output.Right : default(AtomType);
-    //     return ret;
-    // }
-    //public static bool applyInfusionRule(AtomType inputHi, AtomType inputLo, out AtomType translowered, out AtomType transraised)
-
     public static void addDisproportionRule(AtomType input, AtomType outputHi, AtomType outputLo) => addTRule("disproportion", input, new Pair<AtomType, AtomType>(outputHi, outputLo), disproportionDict, new List<AtomType> { saltAtomType }); //Can't disproportionate salt
     public static void addLeftHandRule(AtomType input, AtomType output) => addTRule("lefthand", input, output, lefthandDict, new List<AtomType> { }); //No explicitly banned atoms for Left Hand yet
-                                                                                                                                                      // public static void addInfusionRule(AtomType inputHi, AtomType inputLo, AtomType outputHi, AtomType outputLo)
-                                                                                                                                                      // {
-                                                                                                                                                      // 	addTRule("infusion", new Pair<AtomType, AtomType>(inputHi, inputLo), new Pair<AtomType, AtomType>(outputHi, outputLo), infusionDict, new List<Pair<AtomType, AtomType>>());
-                                                                                                                                                      // }
-                                                                                                                                                      //rule-dictionary generics
+
     private static bool applyTRule<T>(AtomType hi, Dictionary<AtomType, T> dict, out T lo)
     {
         bool ret = dict.ContainsKey(hi);
